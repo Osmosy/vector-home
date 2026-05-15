@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/vector-home-logo.png" alt="Vector Home Logo" width="150"/>
+<img src="assets/logo-original.png" alt="Vector Home Logo" width="200"/>
 
 # Vector Home
 
