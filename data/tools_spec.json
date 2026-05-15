@@ -1,0 +1,16 @@
+{
+  "tools": [
+    {"name": "turn_on_light", "description": "Turn on a light in a specified room", "parameters": {"room": {"type": "string", "description": "The room name"}}},
+    {"name": "turn_off_light", "description": "Turn off a light in a specified room", "parameters": {"room": {"type": "string", "description": "The room name"}}},
+    {"name": "set_temperature", "description": "Set the thermostat temperature for a room", "parameters": {"room": {"type": "string", "description": "The room name"}, "temperature_c": {"type": "integer", "description": "Target temperature in Celsius"}}},
+    {"name": "query_temperature", "description": "Get the current temperature of a room", "parameters": {"room": {"type": "string", "description": "The room name"}}},
+    {"name": "lock_door", "description": "Lock a door", "parameters": {"door": {"type": "string", "description": "The door name"}}},
+    {"name": "unlock_door", "description": "Unlock a door", "parameters": {"door": {"type": "string", "description": "The door name"}}},
+    {"name": "play_music", "description": "Play music in a room", "parameters": {"song": {"type": "string", "description": "Song or playlist name"}, "room": {"type": "string", "description": "The room name"}}},
+    {"name": "stop_music", "description": "Stop playing music in a room", "parameters": {"room": {"type": "string", "description": "The room name"}}},
+    {"name": "set_alarm", "description": "Set an alarm", "parameters": {"time": {"type": "string", "description": "Alarm time in HH:MM format"}}},
+    {"name": "cancel_alarm", "description": "Cancel an alarm", "parameters": {"time": {"type": "string", "description": "Alarm time in HH:MM format"}}},
+    {"name": "activate_scene", "description": "Activate a smart home scene", "parameters": {"scene": {"type": "string", "description": "Scene name e.g. movie_night, morning, away"}}},
+    {"name": "vacuum_start", "description": "Start the robot vacuum cleaner", "parameters": {"room": {"type": "string", "description": "The room name or 'everywhere'"}}}
+  ]
+}

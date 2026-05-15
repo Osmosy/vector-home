@@ -1,0 +1,38 @@
+# Models (too large for git, ~2.5 GB)
+models/*.pt
+models/*.onnx
+models/*.onnx.json
+models/voices/
+models/base_gpt2/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+.env.*
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data cache (datasets generated locally)
+data/train_dataset.json
+data/train_dataset_ru.json
+
+# Logs
+*.log

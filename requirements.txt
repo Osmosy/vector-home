@@ -1,0 +1,8 @@
+torch>=2.0
+safetensors
+tokenizers
+numpy
+fastapi
+uvicorn
+httpx
+pyyaml
