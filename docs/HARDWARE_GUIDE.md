@@ -153,10 +153,10 @@ esp8266:
 # Wi-Fi — подставь свои данные
 wifi:
   ssid: "Твой_Wi-Fi"
-  password: "Твой_пароль"
+  password: !secret wifi_password
   ap:
     ssid: "${name} Fallback"
-    password: "12345678"
+    password: !secret ap_password
 
 # Fallback точка доступа (если Wi-Fi не подключается)
 captive_portal:
@@ -164,12 +164,12 @@ captive_portal:
 # API для Home Assistant
 api:
   encryption:
-    key: "СГЕНЕРИРУЙ_КЛЮЧ_НИЖЕ"  # Команда: esphome keygen
+    key: !secret encryption_key  # Команда: esphome keygen
 
 # OTA (обновления по воздуху)
 ota:
   - platform: esphome
-    password: "твой_пароль_ota"
+    password: !secret ota_password
 
 # Логирование
 logger:
