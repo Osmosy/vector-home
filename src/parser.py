@@ -11,8 +11,10 @@ import torch
 
 sys.stdout.reconfigure(encoding='utf-8') if hasattr(sys.stdout, 'reconfigure') else None
 
-GPT2_REPO = Path(os.environ.get("GPT2_REPO", str(Path(__file__).resolve().parent.parent.parent / "gpt2-tool-call")))
-sys.path.insert(0, str(GPT2_REPO / "src"))
+# v2: GPT-2 core bundled in-repo (src/gpt2_core/) — no external dependency
+# Fork: https://github.com/Osmosy/gpt2-tool-call (pinned to barometech@d3c71bb)
+GPT2_CORE = Path(__file__).resolve().parent / "gpt2_core"
+sys.path.insert(0, str(GPT2_CORE))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from integrated_gpt2_torch import GPT2, load_gpt2_torch_weights, encode, decode
