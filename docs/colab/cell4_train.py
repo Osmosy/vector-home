@@ -1,3 +1,6 @@
+import torch
+torch.cuda.empty_cache()
+
 from trl import SFTTrainer
 from transformers import TrainingArguments
 from unsloth import is_bfloat16_supported
@@ -7,23 +10,22 @@ trainer = SFTTrainer(
     tokenizer = tokenizer,
     train_dataset = train_dataset,
     eval_dataset = eval_dataset,
-    max_seq_length = 512,
+    max_seq_length = 256,
     dataset_num_proc = 2,
     args = TrainingArguments(
         num_train_epochs = 3,
-        per_device_train_batch_size = 4,
-        gradient_accumulation_steps = 4,
+        per_device_train_batch_size = 2,
+        gradient_accumulation_steps = 8,
         learning_rate = 2e-4,
         warmup_steps = 50,
         lr_scheduler_type = "cosine",
         bf16 = is_bfloat16_supported(),
         fp16 = not is_bfloat16_supported(),
         logging_steps = 25,
-        eval_strategy = "steps",
-        eval_steps = 100,
+        eval_strategy = "no",
         save_strategy = "steps",
-        save_steps = 100,
-        save_total_limit = 2,
+        save_steps = 200,
+        save_total_limit = 1,
         optim = "adamw_8bit",
         weight_decay = 0.01,
         seed = 42,
@@ -34,7 +36,8 @@ trainer = SFTTrainer(
 
 print("Training started...")
 print(f"  Examples: {len(train_dataset)}")
-print(f"  Epochs: 3, LoRA rank: 16, Batch: 16")
+print(f"  Epochs: 3, LoRA rank: 16, Batch: 16 (2x8)")
+print(f"  Max seq: 256 (reduced for T4)")
 print(f"  Expected time: ~30-40 min on T4")
 
 trainer_stats = trainer.train()
