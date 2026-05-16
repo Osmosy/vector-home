@@ -1,9 +1,8 @@
-# Models (too large for git, ~2.5 GB)
-models/*.pt
-models/*.onnx
-models/*.onnx.json
-models/voices/
-models/base_gpt2/
+# Models — tracked via Git LFS, pinned to barometech/gpt2-tool-call@d3c71bb
+# Required: gpt2_ha_best.pt (EN FT), gpt2_ha_ru_best.pt (RU+EN FT), smart_home_v2.pt (v2 merged)
+# Optional: gpt2_ha_step100.pt, gpt2_ha_ru_step100.pt (checkpoints)
+# Not tracked: gpt2_ha_final.pt (overfitted, 92%, rejected)
+models/gpt2_ha_final.pt
 
 # Python
 __pycache__/
