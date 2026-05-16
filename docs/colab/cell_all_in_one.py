@@ -6,8 +6,8 @@ gc.collect()
 from unsloth import FastLanguageModel
 
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = "unsloth/Qwen3-8B",
-    max_seq_length = 256,
+    model_name = "unsloth/Qwen3-4B",
+    max_seq_length = 512,
     load_in_4bit = True,
     full_finetuning = False,
 )
@@ -51,12 +51,12 @@ trainer = SFTTrainer(
     model = model,
     tokenizer = tokenizer,
     train_dataset = train_dataset,
-    max_seq_length = 256,
+    max_seq_length = 512,
     dataset_num_proc = 2,
     args = TrainingArguments(
         num_train_epochs = 3,
-        per_device_train_batch_size = 1,
-        gradient_accumulation_steps = 16,
+        per_device_train_batch_size = 4,
+        gradient_accumulation_steps = 4,
         learning_rate = 2e-4,
         warmup_steps = 50,
         lr_scheduler_type = "cosine",
@@ -75,6 +75,6 @@ trainer = SFTTrainer(
     ),
 )
 
-print(f"Training: {len(train_dataset)} ex, batch=1x16, seq=256, ~30-40 min")
+print(f"Training: {len(train_dataset)} ex, batch=4x4=16, seq=512, ~20-30 min")
 trainer_stats = trainer.train()
 print(f"Done! Loss: {trainer_stats.training_loss:.4f}")
