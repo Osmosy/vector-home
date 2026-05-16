@@ -92,7 +92,7 @@ print(f"Training: {len(train_dataset)} ex, batch=4x4=16, seq=512, ~20-30 min")
 trainer_stats = trainer.train()
 print(f"Done! Loss: {trainer_stats.training_loss:.4f}")
 
-# Save merged model (16-bit) and LoRA adapter
+# Save merged model (16-bit)
 print("Saving merged 16-bit model...")
 model.save_pretrained_merged("merged_model", tokenizer, save_method="merged_16bit")
 
@@ -104,8 +104,21 @@ tokenizer.save_pretrained("smart-home-v2-lora")
 import shutil
 print("Creating archive for download...")
 shutil.make_archive("/content/smart-home-v2-merged", "tar", "/content", "merged_model")
+print(f"Archive created: /content/smart-home-v2-merged.tar")
+print(f"Size: {os.path.getsize('/content/smart-home-v2-merged.tar') / (1024**3):.2f} GB")
 
-from google.colab.files import download
-print("Downloading merged model (tar archive)...")
-print("File is ~8 GB. If browser download fails, upload to Google Drive instead.")
-download("/content/smart-home-v2-merged.tar")
+# List final outputs
+print("\n=== DONE! Files saved: ===")
+print(f"  /content/merged_model/  (16-bit merged)")
+print(f"  /content/smart-home-v2-lora/  (LoRA adapter)")
+print(f"  /content/smart-home-v2-merged.tar  (archive for download)")
+print("\nTo download: click the folder icon on the left sidebar, find the tar file, right-click -> Download")
+
+# Also try automatic download (may fail on headless browsers)
+try:
+    from google.colab.files import download
+    print("Attempting auto-download...")
+    download("/content/smart-home-v2-merged.tar")
+except Exception as e:
+    print(f"Auto-download not available: {e}")
+    print("Use manual download from the Files panel on the left.")
