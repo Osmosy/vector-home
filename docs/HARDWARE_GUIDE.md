@@ -362,7 +362,60 @@ curl -X POST http://localhost:8126/command \
 
 ---
 
-## 4. Музыка
+## 4. Шторы и жалюзи
+
+### Рекомендация: IKEA FYRTUR / KADRILJ или Zigbee-роллеты
+
+- **Цена:** ~3 000–6 000 ₽ за мотор
+- **Протокол:** Zigbee (через DIRIGERA хаб) или Wi-Fi (Tuya)
+- **Питание:** Батарея (FYRTUR ≈ 6 месяцев) или 220В (роллеты)
+- **Оффлайн:** ⚠️ Zigbee — локально через хаб; Wi-Fi — частично
+
+**IKEA FYRTUR** (чёрные шторы) и **KADRILJ** (роллеты) — самые простые варианты. Нужен DIRIGERA хаб (~4 000 ₽). Подключаются через приложение IKEA, затем интегрируются в HA.
+
+#### Wi-Fi альтернатива: Moes / Tuya мотор для жалюзи
+
+- **Цена:** ~1 500–3 000 ₽
+- **Протокол:** Wi-Fi
+- **Оффлайн:** ⚠️ Через облако; ESPHome — частично (зависит от чипа)
+
+Установи мотор на существующие жалюзи/шторы → подключи к Wi-Fi → добавь интеграцию Tuya в HA. Для полного оффлайна — нужна прошивка ESPHome (не все чипы поддерживаются).
+
+#### Home Assistant (Zigbee)
+
+1. Настройки → Устройства и службы → Добавить интеграцию → «ZHA» или «deCONZ»
+2. Сопряжение: зажми кнопку на моторе шторы ≈10 сек до мигания
+3. Устройство появится как `cover.living_room_curtains`
+4. Переименуй entity_id: `cover.bedroom_curtains`, `cover.living_room_blinds` и т.д.
+
+#### В Vector Home
+
+```bash
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"utterance": "открой шторы в спальне"}'
+# → open_curtains → cover.bedroom_curtains
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"utterance": "закрой жалюзи на кухне"}'
+# → lower_blinds → cover.kitchen_blinds
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"utterance": "поставь жалюзи на 50 процентов"}'
+# → set_blinds_position → cover.living_room_blinds {position: 50}
+```
+
+#### Альтернативы
+
+- **SwitchBot Curtain** — ~4 000 ₽. Bluetooth, ставится на карниз. Минус: нужен SwitchBot Hub для HA.
+- **Aqara Roller Driver E1** — ~3 000 ₽. Zigbee, надёжный. Минус: нужен Zigbee-стик.
+- **Sonoff iFan02 + шторы** — ~1 500 ₽. Wi-Fi, ESPHome. Минус: для роллетных моторов.
+
+---
+
+## 5. Музыка
 
 ### Рекомендация: Любая колонка + HA медиаплеер
 
@@ -405,7 +458,7 @@ curl -X POST http://localhost:8126/command \
 
 ---
 
-## 5. Робот-пылесос
+## 6. Робот-пылесос
 
 ### Рекомендация: Roborock S5 Max / S6
 
@@ -448,7 +501,7 @@ curl -X POST http://localhost:8126/command \
 
 ---
 
-## 6. Сцены
+## 7. Сцены
 
 Сцены в Home Assistant — это предустановленные комбинации действий. «Кинотеатр» = выключить свет + включить телевизор + закрыть шторы. «Доброе утро» = включить свет + открыть шторы + включить кофеварку.
 
@@ -488,7 +541,7 @@ curl -X POST http://localhost:8126/command \
 
 ---
 
-## 7. Будильники
+## 8. Будильники
 
 ### Настройка в HA
 
@@ -536,6 +589,92 @@ input_boolean:
       target:
         entity_id: input_boolean.alarm
 ```
+
+---
+
+## 9. Сад и полив
+
+### Рекомендация: Sonoff SV + электромагнитный клапан
+
+- **Цена:** ~400 ₽ (Sonoff SV) + ~1 000–2 000 ₽ (клапан ½" или ¾")
+- **Протокол:** Wi-Fi
+- **Питание:** 220В (Sonoff), 12В/24В (клапан)
+- **Оффлайн:** ✅ Да (ESPHome)
+
+**Как работает:** Sonoff SV — реле на 5–24В. Управляет электромагнитным клапаном полива через HA. Можно создать зоны полива, каждую на свой Sonoff SV.
+
+#### ESPHome конфигурация (аналогично TH Elite)
+
+```yaml
+substitutions:
+  name: "sonoff-sv-irrigation-zone1"
+  friendly_name: "Полив Зона 1"
+
+esphome:
+  name: ${name}
+
+esp8266:
+  board: esp01_1m
+
+wifi:
+  ssid: "Твой_Wi-Fi"
+  password: !secret wifi_password
+  ap:
+    ssid: "${name} Fallback"
+    password: !secret ap_password
+
+captive_portal:
+api:
+  encryption:
+    key: !secret encryption_key
+ota:
+  - platform: esphome
+    password: !secret ota_password
+logger:
+
+switch:
+  - platform: gpio
+    pin: 12
+    name: "Полив Зона 1"
+    id: irrigation_zone1
+    icon: mdi:sprinkler
+```
+
+Прошей через ESPHome (аналогично Sonoff TH Elite), затем подключи клапан:
+
+```
+Sonoff SV:
+  ┌─────────────┐
+  │  COM  ←── клапан ←── блок питания 12В
+  │  NO   ←── к клапану
+  │  L    ←── фаза (220В)
+  │  N    ←── нейтраль (220В)
+  └─────────────┘
+```
+
+> ⚠️ **ОСТОРОЖНО: 220В!** Sonoff SV питается от 220В, но реле переключает 5–24В. Не подключай клапан напрямую к 220В.
+
+В HA устройство появится как `switch.sonoff_sv_irrigation_zone1`. Переименуй в `switch.irrigation_zone_1`.
+
+#### В Vector Home
+
+```bash
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"utterance": "включи полив зоны 1"}'
+# → start_irrigation_zone → switch.irrigation_zone_1
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"utterance": "выключи полив"}'
+# → stop_irrigation_zone → switch.irrigation_zone_1
+```
+
+#### Альтернативы
+
+- **Hunter X2 + Wi-Fi модуль** — ~8 000 ₽. Профессиональный контроллер полива. Минус: дорого, сложная настройка.
+- **Orbit B-hyve** — ~3 000 ₽. Wi-Fi таймер полива. Минус: облако, нет ESPHome.
+- **Tuya клапан полива** — ~1 500 ₽. Wi-Fi, Tuya. Минус: облако, нужен хаб.
 
 ---
 
@@ -677,3 +816,5 @@ input_boolean:
 - **Xiaomi Miio** — автообнаружение по IP ✅, оффлайн ⚠️ (частично)
 - **VLC** — ручное подключение ❌, оффлайн ✅
 - **ESPHome** — автообнаружение ✅, оффлайн ✅
+- **ZHA / deCONZ (Zigbee)** — автообнаружение ✅, оффлайн ✅ (шторы, датчики)
+- **IKEA DIRIGERA** — автообнаружение ✅, оффлайн ⚠️ (через хаб)

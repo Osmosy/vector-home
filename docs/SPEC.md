@@ -1,346 +1,965 @@
-# Vector Home v2 — Техническое задание
+# Vector Home v2 — Техническое задание (полная спецификация)
 
-## Суть проекта
+> **Версия:** 2.0.0  
+> **Дата:** 2026-05-16  
+> **Статус:** Все фазы 0–6 завершены ✅
 
-Оффлайновый стек управления умным домом на CPU: голос/текст → router → SLM-parser → Home Assistant.
-**v2**: 53 инструмента, веб-панель управления, мерж с barometech/smart-home-gpt2.
+---
 
-Без облака, без GPU, без API-ключей.
+## 1. Суть проекта
 
-## Архитектура
+**Vector Home v2** — оффлайновый стек управления умным домом на CPU.  
+Конвейер: **голос/текст → Router → Parser → HA Bridge → Home Assistant**.
+
+Без облака · Без GPU · Без API-ключей
+
+**Ключевые метрики v2:**
+
+| Метрика | Значение |
+|---------|----------|
+| Инструментов | 52 (+ `none`) |
+|Router правила | 95 |
+| Router точность | **95/95 = 100%** EN+RU |
+| Тестов pytest | **130 ✓** |
+| Языки | EN + RU (нативно) |
+| Порог \b для кириллицы | ✅ Исправлен |
+| HA маппингов | 53 tool → HA service call |
+
+---
+
+## 2. Архитектура
 
 ```
-Голос/Текст  ──►  Web Panel (React)
-        │               │
-        ▼               ▼
-┌──────────────────────────────┐
-│          Router v2           │  keyword/regex (0 RAM, 53+ intents)
-│     215 rules, RU + EN       │  fallback → Qwen3:8B (Ollama)
-└──────────┬───────────────────┘
-           │
-           ├─ hit ──► GPT-2 124M Full FT (600 MB RAM)
-           │           single-tool parser → JSON
-           │
-           ├─ miss ──► Qwen3:8B (5 GB RAM, Ollama)
-           │           multi-intent / ambiguous
-           │
-           └─ ambiguous ──► clarify (возврат пользователю)
-
+Голос / Текст  ──►  Web Dashboard (/panel)
+       │                   │
+       ▼                   ▼
+┌──────────────────────────────────────┐
+│            Router v2                │
+│  95 regex правил, 0 RAM, <1 ms      │
+│  100% EN+RU, fallback → Qwen3:8B   │
+└──────────┬───────────────────────────┘
+           │ hit
+           ▼
+┌──────────────────┐
+│  Parser v2       │  GPT-2 124M (smart_home_v2.pt)
+│  Single-tool     │  Fuzzy match, 53-tool spec
+│  ~2 s/команда    │  1024 токена контекст
+└──────────┬───────┘
+           │ JSON {name, arguments}
+           ▼
+┌──────────────────┐
+│  HA Bridge v2     │  53 tool → HA mapping
+│  RU → EN маппинг │  комнаты/двери/сцены/AC режимы
+│  REST + WebSocket │  entity discovery
+└──────────┬───────┘
            │
            ▼
-┌──────────────────┐      ┌──────────────────┐
-│ Home Assistant    │◄────►│ HA WebSocket      │
-│ REST API          │      │ (real-time events)│
-└──────────────────┘      └──────────────────┘
+    Home Assistant
+    (REST API /api/services)
 
            │
            ▼
 ┌──────────────────┐
-│ Voice Pipeline    │  STT (Whisper) → TTS (Piper / edge-tts)
+│  API v2           │  FastAPI + WebSocket
+│  POST /command    │  GET /panel, /history, /tools
+│  WS  /ws          │  real-time push
 └──────────────────┘
 
            │
            ▼
-┌──────────────────┐
-│  Web Dashboard    │  FastAPI + React SPA (порт 8126)
-│  /panel           │  Управление устройствами, мониторинг, история
-└──────────────────┘
+┌──────────────────────────────────────┐
+│  Voice Pipeline                      │
+│  STT (faster-whisper) → Router →     │
+│  Parser → HA → TTS (Piper/edge-tts) │
+└──────────────────────────────────────┘
 ```
 
-## Компоненты
+---
 
-### 1. Router v2 (intent classifier)
-- 215 regex правил для 53 интентов, RU/EN
-- Порядок правил критичен: специфичные → общие
-- `\b` НЕ используется для кириллицы (Python regex баг)
-- Fallback на Qwen3:8B при промахе
-- Валидация: 87/95 = 92% (цель: 95%+)
+## 3. Компоненты
 
-### 2. Parser (GPT-2 124M Full FT)
-- База: gpt2-tool-call (barometech/gpt2-tool-call)
-- Full FT под домен умного дома: `gpt2_ha_best.pt`
-- RU SFT: `gpt2_ha_ru_best.pt` (mixed EN+RU)
-- v2: `smart_home_v2.pt` (barometech, merged dataset)
-- Single-tool: 100% EN, 95% RU
-- Инференс: ~2s/команда на CPU
-- RAM: ~600 MB
+### 3.1 Router v2 — классификатор интентов
 
-### 3. Fallback solver (Qwen3:8B via Ollama)
-- Multi-intent команды
-- Ambiguous запросы
-- localhost:11434
+**Файл:** `src/router.py`  
+**Класс:** `HomeRouter`
 
-### 4. Home Assistant bridge (REST + WebSocket)
-- `ha_bridge.py` — 53 tool → HA service call маппинг
-- `ha_ws.py` — real-time state_changed events, auto-reconnect
-- RU→EN маппинг имён комнат/дверей/сцен
-- Entity discovery через `/api/states`
+| Параметр | Значение |
+|----------|----------|
+| Тип | Keyword/regex (re.IGNORECASE) |
+| Правила | **95** raw rules в `_ROUTER_RULES_RAW` |
+| Интенты | 53 (52 инструмента + `none`) |
+| Языки | EN + RU, нативно |
+| RAM | 0 (чистый regex) |
+| Latency | < 1 ms / команда |
+| Точность | **95/95 = 100%** (TEST_CASES) |
+| Fallback | Qwen3:8B через Ollama (`localhost:11434`) |
 
-### 5. HTTP API + Web Dashboard (FastAPI)
-- **API**:
-  - `POST /command` — текстовая команда → router → parser → HA
-  - `GET /health` — статус всех компонентов
-  - `GET /tools` — список 53 инструментов
-  - `GET /entities` — сущности HA (с фильтром по домену)
-  - `POST /ha/call` — прямой вызов HA
-  - `GET /history` — последние N команд (in-memory)
-  - `WS /ws` — WebSocket для real-time обновлений панели
-- **Dashboard** (`/panel`):
-  - React SPA, встроена в FastAPI (static files)
-  - Управление устройствами по группам (свет, климат, безопасность...)
-  - Командная строка (ввод текста/голоса)
-  - История команд с результатами
-  - Статус HA подключений
-  - Мобильный адаптивный дизайн
+**Критические решения:**
 
-### 6. Voice Pipeline
-- **STT**: faster-whisper (tiny/medium)
-- **TTS**: Piper (offline) / edge-tts (online)
-- Полный контур: `voice.py process_voice()`
+1. **Порядок правил (ORDER MATTERS):** Специфичные шаблоны расположены раньше общих. Блоки приоритета:
+   - Block 1: query_light, set_light_temperature_k, dim_light, blink_light, set_light_color, set_light_scene (ambiguous patterns)
+   - Block 2: TV (перед generic turn_on/off)
+   - Block 3: Radio (перед play_music)
+   - Block 4: Pause (перед stop_music), Mute (перед set_volume)
+   - Block 5: Cancel_alarm (перед Disarm_alarm_system)
+   - Block 6: Set_alarm (перед generic «set»)
+   - Block 7: Blinds angle (перед set_temperature — «degrees»)
+   - Block 9: Outlet (перед generic turn_on/off)
+   - Block 10: Humidifier/Dehumidifier (перед generic turn_on/off)
 
-## Датасет v2
+2. **`\b` НЕ используется для кириллицы** — Python regex `re.IGNORECASE` некорректно обрабатывает `\b` для Unicode-символов (кириллица). Все RU-паттерны используют bare text без `\b`. EN-подстроки вроде `irrigat` тоже без `\b`.
 
-### Объединённый (train_dataset_v2.json)
-- 1000 примеров после дедупликации
+3. **Fallback на Ollama:** При промахе всех regex правил (результат `none`, `confident=False`) вызывается `route_with_fallback()` → POST `/v1/chat/completions` к Qwen3:8B. Модель получает список всех 53 интентов и возвращает один.
+
+**Метод:**
+```python
+route(utterance: str) -> Tuple[str, bool]
+# Returns: (tool_name, confident)
+# "none"/False → no match
+```
+
+**Нормализация:**
+- lower().strip()
+- Удаление конечных `.!?`
+- Замена `'s ` → ` is `
+
+---
+
+### 3.2 Parser v2 — GPT-2 124M
+
+**Файл:** `src/parser.py`  
+**Класс:** `HomeParser`
+
+| Параметр | Значение |
+|----------|----------|
+| Модель | GPT-2 124M (gpt2-tool-call) |
+| Веса | `models/smart_home_v2.pt` (fallback: `gpt2_ha_best.pt`) |
+| Контекст | **1024 токена** |
+| Max генерация | 80 токенов |
+| Тип инференса | Single-tool (router предвыбирает инструмент) |
+| Fuzzy match | 15 алиасов (turn_on_lights → turn_on_light и т.д.) |
+| Validation | Аргументы фильтруются по spec инструмента |
+| Latency CPU | ~2 s/команда |
+| RAM | ~600 MB |
+
+**Конфигурация:**
+- Файл спеки инструментов: `data/tools_spec_v2.json` (53 инструмента)
+- Prompt format: `SYSTEM: You are a helpful assistant...\n<spec>\n\nUSER: <utterance>\n\nASSISTANT: <functioncall> `
+- Генерация: greedy decoding (argmax), остановка по `}`
+- Переопределение имени инструмента: router name имеет приоритет над GPT-2 output
+
+**Fuzzy match (FUZZY_TOOLS_MAP):**
+```python
+"start_vacuum_cleaner" → "vacuum_start"
+"turn_on_lights"       → "turn_on_light"
+"set_thermostat_mode"  → "set_thermostat"
+"set_ac_temperature"   → "set_ac_mode"
+"turn_on_music"        → "play_music"
+...
+```
+Также работает prefix match: `turn_on_ligh` → `turn_on_light`.
+
+---
+
+### 3.3 HA Bridge v2 — маппинг на Home Assistant
+
+**Файл:** `src/ha_bridge.py`  
+**Класс:** `HABridge`
+
+#### 3.3.1 Маппинги
+
+**`HA_ENTITY_MAP`** — 53 записи: tool_name → (HA_domain, entity_template)
+
+```python
+"turn_on_light"     → ("light",    "light.{room}")
+"set_temperature"    → ("climate",  "climate.{room}")
+"open_curtains"      → ("cover",    "cover.{room}_curtains")
+"lock_door"          → ("lock",     "lock.{door}")
+"play_music"         → ("media_player", "media_player.{room}")
+"start_irrigation_zone" → ("switch", "switch.irrigation_zone_{zone}")
+...
+```
+
+**`HA_SERVICE_MAP`** — 53 записи: tool_name → (domain, service, service_data_template)
+
+```python
+"turn_on_light"          → ("light", "turn_on", {})
+"set_temperature"        → ("climate", "set_temperature", {"temperature": "{temperature_c}"})
+"set_ac_mode"            → ("climate", "set_hvac_mode", {"hvac_mode": "{mode}"})
+"set_blinds_position"    → ("cover", "set_cover_position", {"position": "{position}"})
+"play_radio_station"     → ("media_player", "play_media",
+                             {"media_content_id": "{station}", "media_content_type": "music"})
+...
+```
+
+**Query-инструменты** (возвращают состояние, не вызывают сервис):
+```python
+QUERY_TOOLS = {
+    "query_temperature", "query_light_state", "query_humidity",
+    "query_door_status", "query_alarm_status", "query_soil_moisture",
+    "query_air_quality",
+}
+```
+
+#### 3.3.2 RU → EN маппинг
+
+**Комнаты** (`RU_ROOM_MAP`, 14 записей):
+```python
+"гостиная" → "living_room"    "спальня" → "bedroom"
+"кухня"    → "kitchen"         "ванная"  → "bathroom"
+"кабинет"  → "office"          "прихожая" → "hallway"
+"гараж"    → "garage"          "детская"  → "nursery"
+"коридор"  → "hall"            "подвал"  → "basement"
+"чердак"   → "attic"           "столовая" → "dining_room"
+"гостевая" → "guest_room"      "кладовая" → "storage"
+```
+
+**Двери** (`RU_DOOR_MAP`, 5 записей):
+```python
+"входная"  → "front_door"      "задняя"    → "back_door"
+"гаражная" → "garage_door"     "балконная"  → "balcony_door"
+"подвальная" → "basement_door"
+```
+
+**Сцены** (`RU_SCENE_MAP`, 16 записей):
+```python
+"кино" → "movie"     "ночь" → "night"     "утро" → "morning"
+"вечеринка" → "party" "романтик" → "romantic"
+"фокус" → "focus"     "отпуск" → "away"
+...
+```
+
+**AC режимы** (`RU_AC_MODE_MAP`, 14 записей):
+```python
+"охлаждение" → "cool"   "обогрев" → "heat"   "авто" → "auto"
+"сушка" → "dry"         "вентиляция" → "fan_only"
+...
+```
+
+#### 3.3.3 Entity discovery
+
+Метод `list_entities(domain=None)` — GET `/api/states` async через httpx.
+
+#### 3.3.4 Dry run mode
+
+При отсутствии `HA_TOKEN` или `dry_run=True` — возвращает лог вызова без реального обращения к HA.
+
+---
+
+### 3.4 API v2 — FastAPI + WebSocket
+
+**Файл:** `src/api.py`  
+**Порт:** 8126 (env `VH_PORT`)
+
+#### Endpoints
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| `POST` | `/command` | Текстовая команда → router → parser → HA |
+| `GET` | `/health` | Статус системы (router, parser, HA bridge) |
+| `GET` | `/tools` | Список 53 инструментов с описаниями |
+| `GET` | `/entities?domain=` | Сущности HA (опционально по домену) |
+| `POST` | `/ha/call` | Прямой вызов HA service |
+| `GET` | `/history?limit=20` | История последних команд (in-memory, max 100) |
+| `WS` | `/ws` | WebSocket: real-time push + приём команд |
+| `GET` | `/panel` | Web Dashboard (serves static/index.html) |
+
+#### Data models
+
+```python
+class CommandRequest(BaseModel):
+    text: str
+    live: bool = False   # True → реальный HA вызов
+
+class CommandResponse(BaseModel):
+    tool: str
+    arguments: dict
+    ha_service: Optional[dict] = None
+    latency_s: float = 0
+    used_fallback: bool = False
+    ha_result: Optional[dict] = None
+```
+
+#### WebSocket протокол
+
+- **Init:** При подключении отправляется `{"type": "init", "tools_count": 53, "history": [...]}`
+- **Command:** Клиент отправляет `/command <text>` → сервер возвращает результат
+- **Broadcast:** При POST `/command` результат пушится всем WebSocket-клиентам
+- **Ping/Pong:** Клиент шлёт `ping` → сервер отвечает `{"type": "pong"}`
+
+---
+
+### 3.5 Web Dashboard
+
+**Директория:** `static/` (раздаётся через FastAPI `/static` и `/panel`)
+
+Файлы:
+- `index.html` — SPA с 8 группами устройств
+- `style.css` — Тёмная тема, адаптивная верстка
+- `app.js` — WebSocket + голосовой ввод (Web Speech API)
+
+#### Группы устройств (8)
+
+| # | Группа | Иконка | Инструменты |
+|---|--------|--------|-------------|
+| 1 | Свет | 💡 | turn_on_light, turn_off_light, dim_light, blink_light, set_light_color, set_light_scene, set_light_temperature_k, query_light_state |
+| 2 | Климат | 🌡️ | set_temperature, query_temperature, set_thermostat, set_ac_mode, set_fan_speed, set_humidity_target, toggle_humidifier, toggle_dehumidifier, query_humidity |
+| 3 | Шторы/жалюзи | 🪟 | open_curtains, close_curtains, raise_blinds, lower_blinds, set_blinds_position, set_blinds_angle |
+| 4 | Пылесос | 🤖 | vacuum_start, stop_vacuum, dock_vacuum |
+| 5 | Безопасность | 🔒 | lock_door, unlock_door, query_door_status, arm_alarm_system, disarm_alarm_system, query_alarm_status, trigger_panic_alarm |
+| 6 | Медиа | 🎵 | play_music, stop_music, pause_music, play_radio_station, set_volume, mute_audio, turn_on_tv, turn_off_tv, set_tv_channel, set_tv_volume |
+| 7 | Сад | 🌿 | start_irrigation_zone, stop_irrigation_zone, query_soil_moisture |
+| 8 | Другое | ⚡ | set_alarm, cancel_alarm, activate_scene, toggle_outlet, query_air_quality, set_motion_sensitivity |
+
+#### Функции Dashboard
+
+- **Командная строка**: текстовый ввод + кнопка отправки
+- **Голосовой ввод**: 🎤 кнопка, Web Speech API (browser native)
+- **История команд**: список результатов (scrollable, clearable)
+- **Статусы**: WebSocket подключение (dot green/red), HA подключение (dot green/red)
+- **Real-time**: WebSocket push новых результатов
+- **Dark theme**: CSS variables, адаптивная верстка (mobile-first)
+
+---
+
+### 3.6 Voice Pipeline
+
+**Файл:** `src/voice.py`  
+**Класс:** `VoicePipeline`
+
+| Компонент | Реализация |
+|-----------|-----------|
+| STT | faster-whisper (tiny/base/medium) |
+| TTS | Piper (offline, ~20MB/voice) или edge-tts (online) |
+| Языки | EN + RU (автоопределение по кириллице в аргументах) |
+
+**Контур:** Audio → STT → text → Router → Parser → HA → format_response → TTS → audio
+
+---
+
+### 3.7 Pipeline
+
+**Файл:** `src/pipeline.py`  
+**Функция:** `process(utterance, router, parser, ha, verbose=True)`
+
+```
+1. Router.route(utterance) → (tool_name, confident)
+2. При miss → Router.route_with_fallback(utterance) → Ollama Qwen3:8B
+3. Parser.parse(utterance, tool_name) → {name, arguments, _latency_s}
+4. HABridge.build_service_call(tool_name, arguments) → HA service call
+5. call_ha_sync(tool_name, arguments) → HA REST API (при non-dry-run)
+```
+
+---
+
+## 4. 52 инструмента по 8 доменам
+
+| Домен | Кол-во | Инструменты |
+|-------|--------|-------------|
+| 💡 Свет | 8 | turn_on_light, turn_off_light, dim_light, blink_light, set_light_color, set_light_scene, set_light_temperature_k, query_light_state |
+| 🌡️ Климат | 9 | set_temperature, query_temperature, set_thermostat, set_ac_mode, set_fan_speed, set_humidity_target, toggle_humidifier, toggle_dehumidifier, query_humidity |
+| 🪟 Шторы/жалюзи | 6 | open_curtains, close_curtains, raise_blinds, lower_blinds, set_blinds_position, set_blinds_angle |
+| 🤖 Пылесос | 3 | vacuum_start, stop_vacuum, dock_vacuum |
+| 🔒 Безопасность | 7 | lock_door, unlock_door, query_door_status, arm_alarm_system, disarm_alarm_system, query_alarm_status, trigger_panic_alarm |
+| 🎵 Медиа | 10 | play_music, stop_music, pause_music, play_radio_station, set_volume, mute_audio, turn_on_tv, turn_off_tv, set_tv_channel, set_tv_volume |
+| 🌿 Сад | 3 | start_irrigation_zone, stop_irrigation_zone, query_soil_moisture |
+| 📡 Другое | 6 | set_alarm, cancel_alarm, activate_scene, toggle_outlet, query_air_quality, set_motion_sensitivity |
+
+**Итого: 52 инструмента + `none` (нерознанное) = 53 интента в Router**
+
+---
+
+## 5. Датасет v2
+
+### 5.1 tools_spec_v2.json
+
+- **53 определения** инструментов с типами параметров
+- Формат: `{name, description, parameters: {param_name: {type, description}}}`
+- Версия: `_version: "2.0"`
+
+### 5.2 train_dataset_v2.json
+
+- **1000 примеров** (merged + dedup)
 - Источники: 658 EN (оригинал) + 695 RU (оригинал) + 773 barometech (отфильтрованные)
-- 53 инструмента (12 оригинальных + 41 новых из barometech)
 - Формат: single-tool prompt → JSON
 
-### tools_spec_v2.json
-- 53 определения инструментов с параметрами
-- Группы: light (8), climate (8), covers (6), vacuum (3), security (7),
-  media (7), garden (3), sensors (3), alarms (2), scenes (1), outlets (1), thermostat (1), door (3), humidity (3)
+### 5.3 test_dataset_v2.json
 
-## Поддерживаемые команды (53 инструмента)
+- Разделение для валидации модели parser'а
 
-### 💡 Свет (8)
-| Tool | EN | RU |
-|------|----|----|
-| turn_on_light | turn on the lights in the living room | включи свет в гостиной |
-| turn_off_light | turn off garage lights | выключи свет на кухне |
-| dim_light | dim the lights in the bedroom | приглуши свет в спальне |
-| blink_light | blink the lights | мигни светом |
-| set_light_color | set the light color to red | сделай свет синий |
-| set_light_scene | activate mood lighting | включи сцену кино |
-| set_light_temperature_k | warm white in the bedroom | тёплый свет в спальне |
-| query_light_state | is the light on? | включен ли свет? |
+---
 
-### 🌡️ Климат (8)
-| Tool | EN | RU |
-|------|----|----|
-| set_temperature | set bedroom to 22 degrees | поставь 22 градуса |
-| query_temperature | what is the temperature? | какая температура? |
-| set_thermostat | set thermostat to heat mode | термостат на обогрев |
-| set_ac_mode | set AC to cool mode | кондиционер режим охлаждения |
-| set_fan_speed | set fan to high | скорость вентилятора |
-| set_humidity_target | set humidity to 50% | влажность 50% |
-| toggle_humidifier | turn on humidifier | включи увлажнитель |
-| toggle_dehumidifier | turn on dehumidifier | включи осушитель |
-| query_humidity | what's the humidity? | какая влажность? |
+## 6. Этапы (фазы 0–6 — все завершены ✅)
 
-### 🪟 Шторы/жалюзи (6)
-| Tool | EN | RU |
-|------|----|----|
-| open_curtains | open the curtains | открой шторы |
-| close_curtains | close the curtains | закрой шторы |
-| raise_blinds | raise the blinds | подними жалюзи |
-| lower_blinds | lower the blinds | опусти жалюзи |
-| set_blinds_position | set blinds to 50% | жалюзи на 50% |
-| set_blinds_angle | tilt blinds to 45° | наклон жалюзи 45° |
+| Фаза | Описание | Статус |
+|------|----------|--------|
+| 0 | **Foundation** — клонирование gpt2-tool-call, EN SFT, 12/12=100% | ✅ |
+| 1 | **Router v2** — 95 regex rules, 100% EN/RU, \b fix для кириллицы | ✅ |
+| 2 | **Integration** — FastAPI API, HA Bridge, WebSocket, RU→EN маппинг | ✅ |
+| 3 | **Voice** — STT (faster-whisper) + TTS (Piper/edge-tts), замкнутый контур | ✅ |
+| 4 | **Web Dashboard** — 8 групп устройств, голосовой ввод, тёмная тема, WebSocket | ✅ |
+| 5 | **RU SFT + v2 Merge** — RU датасет 695 примеров, merged 1000 примеров, 53 инструмента | ✅ |
+| 6 | **v2 Release** — Router v2 95/95=100%, Parser v2 (smart_home_v2.pt), 130 pytest | ✅ |
 
-### 🤖 Пылесос (3)
-| Tool | EN | RU |
-|------|----|----|
-| vacuum_start | vacuum the office | пропылесось кухню |
-| stop_vacuum | stop the vacuum | останови пылесос |
-| dock_vacuum | dock the vacuum | пылесос на базу |
+---
 
-### 🔒 Безопасность (7)
-| Tool | EN | RU |
-|------|----|----|
-| lock_door | lock the front door | запри входную дверь |
-| unlock_door | unlock the back door | открой замок |
-| query_door_status | is the door locked? | дверь заперта? |
-| arm_alarm_system | arm the alarm | поставь сигнализацию |
-| disarm_alarm_system | disarm the alarm | сними сигнализацию |
-| query_alarm_status | what's the alarm status? | статус сигнализации? |
-| trigger_panic_alarm | panic alarm! | тревога! |
+## 7. Экспериментальный лог
 
-### 🎵 Медиа (7)
-| Tool | EN | RU |
-|------|----|----|
-| play_music | play jazz in the kitchen | включи джаз |
-| stop_music | stop music | останови музыку |
-| pause_music | pause the music | пауза |
-| play_radio_station | play radio jazz fm | включи радио |
-| set_volume | set volume to 50% | громкость 50% |
-| mute_audio | mute the audio | выключи звук |
-| turn_on_tv | turn on the tv | включи телевизор |
-| turn_off_tv | turn off the tv | выключи телевизор |
-| set_tv_channel | set tv channel to 5 | переключи канал |
-| set_tv_volume | set tv volume to 30 | громкость тв |
+| Что | Результат |
+|-----|-----------|
+| EN single-tool (12 команд) | 12/12 = **100%** |
+| RU single-tool (20 команд) | 19/20 = 95% |
+| Router v1 (44 команды) | 44/44 = **100%** |
+| **Router v2 (95 команд, 53 интента)** | **95/95 = 100%** |
+| v2 merged dataset | 1000 примеров (658+695+773, dedup) |
+| v2 tools | 53 (12 orig + 41 barometech) |
+| **pytest (router + bridge + regressions)** | **130/130 ✓** |
+| Cyrillic `\b` regression | ✅ Исправлен (все RU-паттерны без `\b`) |
+| Rule ordering (query→set, dim→off, thermostat→AC) | ✅ Все корректны |
 
-### 🌿 Сад (3)
-| Tool | EN | RU |
-|------|----|----|
-| start_irrigation_zone | start irrigation zone 1 | включи полив |
-| stop_irrigation_zone | stop irrigation zone 3 | выключи полив |
-| query_soil_moisture | what's the soil moisture? | влажность почвы? |
+---
 
-### 📡 Сенсоры (3)
-| Tool | EN | RU |
-|------|----|----|
-| query_air_quality | what's the air quality? | качество воздуха? |
-| set_motion_sensitivity | set motion sensitivity to high | чувствительность датчика |
-| query_humidity | what's the humidity? | какая влажность? |
+## 8. Известные ограничения
 
-### ⏰ Будильник (2)
-| Tool | EN | RU |
-|------|----|----|
-| set_alarm | wake me up at 07:30 | поставь будильник |
-| cancel_alarm | cancel the alarm | отмени будильник |
+1. **`\b` для кириллицы** — ✅ **Исправлено** в v2. Все RU-паттерны используют bare text без `\b`. EN-подстроки типа `irrigat` тоже без `\b`.
 
-### 🎬 Сцены (1)
-| Tool | EN | RU |
-|------|----|----|
-| activate_scene | activate movie night | включи сцену кино |
+2. **53 инструмента — потолок для regex router** — Дальнейшее расширение количества интентов потребует перехода на fallback (Qwen3:8B) как основной классификатор, т.к. regex-правила становятся неуправляемыми при >60 интентах.
 
-### 🔌 Розетки (1)
-| Tool | EN | RU |
-|------|----|----|
-| toggle_outlet | toggle the outlet | включи розетку |
+3. **GPT-2 context = 1024 токена** — Prompt с более чем ~4 инструментами одновременно переполняет контекст. Single-tool routing (через Router) — единственный надёжный режим. Multi-tool без fallback даёт ~8% точности.
 
-## Веб-панель управления (/panel)
+4. **Оффлайн-only при CPU** — Ollama fallback (Qwen3:8B) требует ~5 GB RAM и GPU/долгий CPU вывод. Без Ollama недоступен multi-intent fallback.
 
-### Функциональность
-- **Панель устройств**: карточки устройства по группам (свет, климат, ...)
-- **Командная строка**: ввод текстовой команды с живым результатом
-- **История команд**: список последних N команд с результатами (in-memory)
-- **Статус системы**: HA подключение, router/parser/bridge статусы
-- **WebSocket**: real-time обновления при выполнении команд
+5. **HA_entity_map использует шаблоны** — Entity ID вида `light.{room}` требуют точного совпадения комнаты с HA entity. При несовпадении — dry run вернёт шаблон без реального вызова.
 
-### Техническое решение
-- FastAPI раздаёт статические файлы из `static/`
-- React SPA собирается в `static/` (или чистый HTML+JS без сборки для простоты)
-- CSS: тёмная тема, адаптивная верстка, иконки по группам
-- WebSocket через `/ws` endpoint для push-обновлений
+6. **In-memory history** — Командная история хранится в RAM (max 100 записей), при перезапуске API теряется.
 
-## Требования
+---
 
-### Минимальные
-- CPU-only (без GPU)
-- RAM: ≤1 GB для stack без fallback, ≤6 GB с Qwen3
-- Диск: ≤2 GB (модели + голоса + данные)
-- Оффлайн: полная работоспособность без интернета
-- Python 3.10+
-
-### Целевые
-- Latency router: <10ms
-- Latency parser: <3s (CPU)
-- Router accuracy: ≥95% (v2 target)
-- Parser accuracy EN: 100%, RU: ≥90%
-
-## Этапы
-
-### Phase 0: Foundation ✅
-- [x] Клонировать gpt2-tool-call, скачать веса
-- [x] Сгенерировать EN датасет (658 примеров)
-- [x] SFT EN: 12/12 = 100%
-
-### Phase 1: Router ✅
-- [x] Keyword/regex router v1: 12 intents, 44 команды = 100%
-
-### Phase 2: Integration ✅
-- [x] FastAPI API endpoint (порт 8126)
-- [x] HA REST bridge + WebSocket
-- [x] RU→EN маппинг entity
-
-### Phase 3: Voice ✅
-- [x] STT + TTS pipeline
-- [x] Замкнутый контур: голос → HA → голос
-
-### Phase 4: RU SFT ✅
-- [x] RU датасет: 695 примеров
-- [x] RU SFT: 95% accuracy
-
-### Phase 5: v2 Merge 🔄
-- [x] Merge barometech/smart-home-gpt2 dataset (1500 примеров)
-- [x] Router v2: 53 intents, 215 правил
-- [x] tools_spec_v2.json: 53 инструмента
-- [x] train_dataset_v2.json: 1000 примеров (merged + dedup)
-- [ ] Починить router_v2: 92% → 95%+ (8 failing RU+EN tests)
-- [ ] Обновить parser.py под tools_spec_v2
-- [ ] Обновить pipeline.py под router_v2
-- [ ] Обновить api.py + веб-панель
-- [ ] Обновить ha_bridge.py: 53 tool → HA mapping
-- [ ] Обновить voice.py под router_v2
-
-### Phase 6: Web Dashboard 🔄
-- [ ] FastAPI: `/panel` раздаёт static HTML+JS
-- [ ] Dashboard UI: карточки устройств по группам
-- [ ] Командная строка в панели
-- [ ] История команд (`/history` endpoint)
-- [ ] WebSocket `/ws` для real-time
-- [ ] Статус системы в панели
-
-### Phase 7: Real HA (отложено)
-- [ ] Подключение к реальному HA
-- [ ] Тестирование на реальных entity
-- [ ] WebSocket подписка на state_changed
-
-## Известные ограничения
-
-1. GPT-2 context = 1024 токена. PI > 4x ломает качество.
-2. Multi-tool без fallback = 8% (architecture limit).
-3. Router v2: `\b` не работает с кириллицей в Python regex → убрано.
-4. 53 инструмента — потолок для keyword/regex router, дальнейшее расширение → fallback на LLM.
-
-## Файловая структура v2
+## 9. Файловая структура v2
 
 ```
 vector-home/
 ├── src/
-│   ├── router.py            # HomeRouter v2 — 53 intents, 215 rules, RU+EN
-│   ├── parser.py             # HomeParser — GPT-2 inference (tools_spec_v2)
-│   ├── pipeline.py           # process() — router → parser → HA bridge
-│   ├── api.py                # FastAPI server + WebSocket (/panel, /ws)
-│   ├── ha_bridge.py          # HABridge — 53 tools → HA service calls
-│   ├── ha_ws.py              # HA WebSocket client
-│   ├── voice.py              # VoicePipeline
-│   ├── train_ha.py           # EN SFT
-│   ├── train_ha_ru.py        # RU SFT
-│   └── generate_ru_dataset.py # RU dataset generator (53 tools)
-├── static/                   # Web dashboard (HTML+CSS+JS, no build step)
-│   ├── index.html            # Dashboard SPA
-│   ├── style.css             # Dark theme, responsive
-│   └── app.js                # Dashboard logic + WebSocket
+│   ├── router.py                # HomeRouter v2 — 95 rules, 53 intents, EN+RU
+│   ├── parser.py                # HomeParser — GPT-2 124M, fuzzy match, 53-tool spec
+│   ├── pipeline.py              # process() — router → parser → HA bridge
+│   ├── api.py                   # FastAPI + WebSocket + /panel + /history
+│   ├── ha_bridge.py             # HABridge — 53 mappings, RU→EN (rooms/doors/scenes/AC modes)
+│   └── voice.py                 # VoicePipeline — STT → pipeline → TTS
+├── static/
+│   ├── index.html               # Web Dashboard — 8 device groups, voice input
+│   ├── style.css                # Dark theme, responsive
+│   └── app.js                   # WebSocket real-time + voice input (Web Speech API)
 ├── data/
-│   ├── tools_spec.json       # v1: 12 tools (legacy)
-│   ├── tools_spec_v2.json    # v2: 53 tools
-│   ├── train_dataset.json    # v1: 658 EN
-│   ├── train_dataset_ru.json # v1: 695 RU
-│   └── train_dataset_v2.json # v2: 1000 merged
+│   ├── tools_spec_v2.json       # 53 tool definitions
+│   ├── train_dataset_v2.json    # 1000 merged training examples
+│   └── test_dataset_v2.json     # Test split
 ├── models/
-│   ├── gpt2_ha_best.pt       # EN FT
-│   ├── gpt2_ha_ru_best.pt    # RU+EN FT
-│   └── voices/               # Piper voices
+│   ├── smart_home_v2.pt          # GPT-2 v2 weights (barometech merged)
+│   ├── gpt2_ha_best.pt           # GPT-2 v1 EN FT weights
+│   ├── gpt2_ha_ru_best.pt        # GPT-2 v1 RU+EN FT weights
+│   └── voices/                    # Piper voice models
 ├── tests/
-│   └── test_router_v2.py     # Router unit tests
+│   └── test_router.py            # 130 pytest tests (routing, regressions, bridge)
 ├── docs/
-│   ├── SPEC.md               # Это ТЗ
-│   ├── QUICK_START.md
-│   ├── USER_GUIDE.md
+│   ├── SPEC.md                   # Это ТЗ (ru)
 │   └── HARDWARE_GUIDE.md
-└── requirements.txt
+├── assets/
+│   └── logo-original.png
+├── requirements.txt
+└── README.md
 ```
 
-## Лог эксперимента
+---
 
-| Что | Результат |
-|-----|-----------|
-| EN single-tool (12 команд) | 12/12 = 100% |
-| RU single-tool (20 команд) | 19/20 = 95% |
-| Router v1 (44 команды) | 44/44 = 100% |
-| Router v2 (95 команд, 53 интента) | 87/95 = 92% |
-| v2 merged dataset | 1000 примеров (658+695+773, dedup) |
-| v2 tools | 53 (12 orig + 41 barometech) |
+## 10. Конфигурация
+
+### Переменные окружения
+
+| Переменная | Описание | По умолчанию |
+|------------|----------|---------------|
+| `HA_URL` | URL Home Assistant | `http://homeassistant.local:8123` |
+| `HA_TOKEN` | Long-lived access token | (пусто = dry run) |
+| `VH_PORT` | Порт API сервера | `8126` |
+| `GPT2_REPO` | Путь к gpt2-tool-call | `../gpt2-tool-call` |
+
+### Зависимости
+
+**Минимальные (CPU-only):**
+```
+torch (CPU)
+fastapi
+uvicorn
+httpx
+pydantic
+```
+
+**Опциональные:**
+```
+faster-whisper    # голосовой ввод
+edge-tts          # TTS (online)
+piper-tts         # TTS (offline)
+ollama            # fallback классификатор (Qwen3:8B)
+```
+
+### Системные требования
+
+| | Минимум | Рекомендуется |
+|---|---------|---------------|
+| CPU | Любой x86_64 | 4+ ядра |
+| RAM | 600 MB (только parser) | 6 GB (с Qwen3 fallback) |
+| Диск | 1.5 GB | 2 GB |
+| GPU | Не требуется | — |
+| Python | 3.10+ | 3.12 |
+| Интернет | Не требуется | Для Ollama fallback |
+
+---
+
+## 11. Быстрый старт
+
+```bash
+git clone https://github.com/Osmosy/vector-home.git
+cd vector-home
+pip install -r requirements.txt
+
+# Тесты (130/130 ✓)
+python -m pytest tests/ -v
+
+# API сервер (порт 8126) + web dashboard
+python -m src.api
+
+# CLI текстовая команда
+python -m src.pipeline "turn on the lights in the living room"
+python -m src.pipeline "включи свет в гостиной"
+
+# Голос (требуется faster-whisper)
+python -m src.voice --interactive
+
+# Live Home Assistant
+export HA_URL="http://homeassistant.local:8123"
+export HA_TOKEN="your_long_lived_token"
+python -m src.api --live
+```
+
+---
+
+## 12. Тестирование
+
+```bash
+python -m pytest tests/test_router.py -v
+```
+
+**Покрытие:**
+
+| Категория | Кол-во тестов | Описание |
+|-----------|---------------|---------|
+| TEST_CASES parametrize | 95 | Все 95 router test cases |
+| Cyrillic `\b` regression | 8 | RU паттерны без `\b` boundary |
+| Rule ordering | ≥ 10 | Приоритет специфичных правил перед общими |
+| HA bridge mappings | ≥ 10 | 53 tool → HA service call |
+| Parser spec validation | ≥ 7 | tools_spec_v2 load + fuzzy match |
+| **Итого** | **130** | |
+
+---
+
+## 13. Отличия от barometech/smart-home-gpt2
+
+| | Vector Home v2 | smart-home-gpt2 |
+|---|---|---|
+| Router | Regex+fallback, 100% EN/RU | GPT-2 124M, multi-tool 71.7% |
+| Parser | GPT-2 124M, single-tool | GPT-2 124M, multi-tool |
+| Инструментов | 52 (+none=53 intents) | 100 |
+| Голос | faster-whisper medium | faster-whisper medium |
+| Dashboard | ✅ (WebSocket, dark theme) | ❌ |
+| HA integration | ✅ (53 mapping, RU→EN) | Эмулятор только |
+| Тесты | 130 pytest | — |
+| Русский язык | ✅ нативно | ✅ через translate |
+| `\b` bug | ✅ Исправлен | — |
+
+---
+
+## 14. HA Service Call Mapping (подробно)
+
+### 💡 Свет (8 инструментов)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| turn_on_light | light | turn_on | light.{room} | — |
+| turn_off_light | light | turn_off | light.{room} | — |
+| dim_light | light | turn_on | light.{room} | brightness_pct={brightness} |
+| blink_light | light | turn_on | light.{room} | flash=short |
+| set_light_color | light | turn_on | light.{room} | color_name={color} |
+| set_light_scene | scene | turn_on | scene.{scene} | — |
+| set_light_temperature_k | light | turn_on | light.{room} | kelvin={temperature} |
+| query_light_state | sensor | — | sensor.{room}_light | (query) |
+
+### 🌡️ Климат (9 инструментов)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| set_temperature | climate | set_temperature | climate.{room} | temperature={temperature_c} |
+| query_temperature | sensor | — | sensor.{room}_temperature | (query) |
+| set_thermostat | climate | set_hvac_mode | climate.{room} | hvac_mode={mode} |
+| set_ac_mode | climate | set_hvac_mode | climate.{room}_ac | hvac_mode={mode} |
+| set_fan_speed | fan | set_percentage | fan.{room} | percentage={speed_pct} |
+| set_humidity_target | humidifier | set_humidity | humidifier.{room} | humidity={humidity_pct} |
+| toggle_humidifier | humidifier | toggle | humidifier.{room} | — |
+| toggle_dehumidifier | humidifier | toggle | dehumidifier.{room} | — |
+| query_humidity | sensor | — | sensor.{room}_humidity | (query) |
+
+### 🪟 Шторы/жалюзи (6 инструментов)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| open_curtains | cover | open_cover | cover.{room}_curtains | — |
+| close_curtains | cover | close_cover | cover.{room}_curtains | — |
+| raise_blinds | cover | open_cover | cover.{room}_blinds | — |
+| lower_blinds | cover | close_cover | cover.{room}_blinds | — |
+| set_blinds_position | cover | set_cover_position | cover.{room}_blinds | position={position} |
+| set_blinds_angle | cover | set_cover_tilt_position | cover.{room}_blinds | tilt_position={angle} |
+
+### 🤖 Пылесос (3 инструмента)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| vacuum_start | vacuum | start | vacuum.robot | — |
+| stop_vacuum | vacuum | stop | vacuum.robot | — |
+| dock_vacuum | vacuum | return_to_base | vacuum.robot | — |
+
+### 🔒 Безопасность (7 инструментов)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| lock_door | lock | lock | lock.{door} | — |
+| unlock_door | lock | unlock | lock.{door} | — |
+| query_door_status | sensor | — | sensor.{door}_lock_status | (query) |
+| arm_alarm_system | alarm_control_panel | alarm_arm_away | alarm_control_panel.home | code={code} |
+| disarm_alarm_system | alarm_control_panel | alarm_disarm | alarm_control_panel.home | code={code} |
+| query_alarm_status | sensor | — | sensor.alarm_status | (query) |
+| trigger_panic_alarm | alarm_control_panel | alarm_trigger | alarm_control_panel.home | — |
+
+### 🎵 Медиа (10 инструментов)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| play_music | media_player | media_play | media_player.{room} | — |
+| stop_music | media_player | media_stop | media_player.{room} | — |
+| pause_music | media_player | media_pause | media_player.{room} | — |
+| play_radio_station | media_player | play_media | media_player.{room} | content_id={station}, type=music |
+| set_volume | media_player | volume_set | media_player.{room} | volume_level={volume_pct} |
+| mute_audio | media_player | volume_mute | media_player.{room} | is_volume_muted=true |
+| turn_on_tv | media_player | turn_on | media_player.{room}_tv | — |
+| turn_off_tv | media_player | turn_off | media_player.{room}_tv | — |
+| set_tv_channel | media_player | play_media | media_player.{room}_tv | content_id=channel_{channel_number} |
+| set_tv_volume | media_player | volume_set | media_player.{room}_tv | volume_level={volume_pct} |
+
+### 🌿 Сад (3 инструмента)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| start_irrigation_zone | switch | turn_on | switch.irrigation_zone_{zone} | — |
+| stop_irrigation_zone | switch | turn_off | switch.irrigation_zone_{zone} | — |
+| query_soil_moisture | sensor | — | sensor.soil_moisture_zone_{zone} | (query) |
+
+### 📡 Другое (6 инструментов)
+
+| Tool | HA Domain | HA Service | Entity Template | Service Data |
+|------|-----------|------------|-----------------|--------------|
+| set_alarm | input_datetime | set_datetime | input_datetime.alarm | time={time} |
+| cancel_alarm | input_boolean | turn_off | input_boolean.alarm | — |
+| activate_scene | scene | turn_on | scene.{scene} | — |
+| toggle_outlet | switch | toggle | switch.{room}_outlet | — |
+| query_air_quality | sensor | — | sensor.{room}_air_quality | (query) |
+| set_motion_sensitivity | number | set_value | number.{room}_motion_sensitivity | value={level} |
+
+---
+
+## 15. RU → EN маппинги (полный список)
+
+### Комнаты (14)
+
+| RU | EN |
+|----|-----|
+| гостиная | living_room |
+| спальня | bedroom |
+| кухня | kitchen |
+| ванная | bathroom |
+| кабинет | office |
+| прихожая | hallway |
+| гараж | garage |
+| детская | nursery |
+| коридор | hall |
+| подвал | basement |
+| чердак | attic |
+| столовая | dining_room |
+| гостевая | guest_room |
+| кладовая | storage |
+
+### Двери (5)
+
+| RU | EN |
+|----|-----|
+| входная | front_door |
+| задняя | back_door |
+| гаражная | garage_door |
+| балконная | balcony_door |
+| подвальная | basement_door |
+
+### Сцены (16)
+
+| RU | EN |
+|----|-----|
+| кино / кинотеатр | movie |
+| ночь / ночи / ночной | night |
+| утро / утра / утренний | morning |
+| вечеринка / пати | party |
+| романтик / романтический | romantic |
+| фокус / рабочий | focus |
+| отпуск / отсутствие | away |
+| гость | guest |
+
+### AC режимы (14)
+
+| RU | EN |
+|----|-----|
+| охлаждение / охлажд / холод | cool |
+| обогрев / обогр / тепло / гре / нагрев | heat |
+| авто / автоматический | auto |
+| сушка / сух / осушение | dry |
+| вентиляция / вентил / проветривание | fan_only |
+
+---
+
+## 16. Router v2 — полная таблица приоритетов
+
+### Блок 1: Конфликтующие интенты (query перед set, dim перед off и т.д.)
+
+| # | Приоритет | Интент | EN пример | RU пример |
+|---|-----------|--------|-----------|-----------|
+| 1 | query→set | query_light_state | is the light on? | включен ли свет? |
+| 2 | temp_k→color | set_light_temperature_k | warm white in bedroom | тёплый свет |
+| 3 | dim→off | dim_light | dim the lights | приглуши свет |
+| 4 | blink→on | blink_light | blink the lights | мигни светом |
+| 5 | color→scene | set_light_color | make the lights blue | сделай свет синий |
+| 6 | scene→general | set_light_scene | activate mood lighting | включи сцену кино |
+
+### Блок 2: TV перед generic light on/off
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 7 | turn_on_tv | turn on the tv | включи телевизор |
+| 8 | turn_off_tv | turn off the tv | выключи телевизор |
+| 9 | set_tv_channel | switch channel on tv | переключи канал |
+| 10 | set_tv_volume | set tv volume to 30 | громкость телевизора |
+
+### Блок 3: Radio перед play_music
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 11 | play_radio_station | play radio jazz fm | включи радио |
+
+### Блок 4: Pause перед stop, Mute перед volume
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 12 | pause_music | pause the music | пауза музыки |
+| 13 | mute_audio | mute the audio | выключи звук |
+
+### Блок 5: Cancel_alarm перед Disarm
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 14 | cancel_alarm | cancel the alarm | отмени будильник |
+
+### Блок 6: Set_alarm перед generic set
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 15 | set_alarm | wake me up at 07:30 | поставь будильник на 7 утра |
+
+### Блок 7: Blinds angle перед temperature (degrees)
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 16 | set_blinds_angle | tilt the blinds to 45 degrees | наклон жалюзи 45° |
+| 17 | set_blinds_position | set blinds to 50% | жалюзи на 50% |
+
+### Блок 9: Outlet перед generic turn on/off
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 18 | toggle_outlet | toggle the outlet | включи розетку |
+
+### Блок 10: Humidifier перед generic
+
+| # | Интент | EN пример | RU пример |
+|---|--------|-----------|-----------|
+| 19 | toggle_humidifier | turn on the humidifier | включи увлажнитель |
+| 20 | toggle_dehumidifier | turn on the dehumidifier | включи осушитель |
+
+### Общие интенты (после всех приоритетных блоков)
+
+Остальные 73 правила покрывают: turn_on/off_light, set_temperature, query_temperature, set_thermostat, set_ac_mode, set_fan_speed, query/set_humidity, covers, vacuum, security, music, volume, irrigation, sensors, scenes, alarms.
+
+---
+
+## 17. Тест-кейсы Router (95 примеров)
+
+### 💡 Свет (21)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 1 | turn on the lights in the living room | turn_on_light |
+| 2 | turn off garage lights | turn_off_light |
+| 3 | light up the bedroom | turn_on_light |
+| 4 | switch off the bedroom light | turn_off_light |
+| 5 | включи свет в гостиной | turn_on_light |
+| 6 | выключи свет на кухне | turn_off_light |
+| 7 | погаси свет в ванной | turn_off_light |
+| 8 | dim the lights in the bedroom | dim_light |
+| 9 | dim light to 30% | dim_light |
+| 10 | приглуши свет в спальне | dim_light |
+| 11 | blink the lights | blink_light |
+| 12 | flash the bedroom light | blink_light |
+| 13 | set the light color to red in the kitchen | set_light_color |
+| 14 | make the lights blue | set_light_color |
+| 15 | сделай свет синий на кухне | set_light_color |
+| 16 | set the light scene to movie | set_light_scene |
+| 17 | activate mood lighting | set_light_scene |
+| 18 | set light color temperature to 4000 kelvin | set_light_temperature_k |
+| 19 | warm white in the bedroom | set_light_temperature_k |
+| 20 | is the light on in the kitchen? | query_light_state |
+| 21 | включен ли свет в спальне | query_light_state |
+
+### 🌡️ Климат (18)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 22 | set the bedroom to 22 degrees | set_temperature |
+| 23 | what is the temperature in the bedroom? | query_temperature |
+| 24 | how warm is it in the living room | query_temperature |
+| 25 | make it 20 celsius in the office | set_temperature |
+| 26 | какая температура в спальне | query_temperature |
+| 27 | установи температуру 22 градуса в гостиной | set_temperature |
+| 28 | set the thermostat to 72 and heat mode | set_thermostat |
+| 29 | термостат на охлаждение 20 градусов | set_thermostat |
+| 30 | set AC to cool mode | set_ac_mode |
+| 31 | кондиционер режим охлаждения | set_ac_mode |
+| 32 | set the fan speed to high | set_fan_speed |
+| 33 | increase fan speed in the bedroom | set_fan_speed |
+| 34 | set humidity target to 50 percent | set_humidity_target |
+| 35 | what's the humidity in the bedroom? | query_humidity |
+| 36 | какая влажность на кухне | query_humidity |
+| 37 | turn on the humidifier | toggle_humidifier |
+| 38 | включи увлажнитель | toggle_humidifier |
+| 39 | turn on the dehumidifier | toggle_dehumidifier |
+
+### 🪟 Шторы/жалюзи (9)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 40 | open the curtains in the bedroom | open_curtains |
+| 41 | close the curtains | close_curtains |
+| 42 | открой шторы в гостиной | open_curtains |
+| 43 | закрой шторы | close_curtains |
+| 44 | raise the blinds | raise_blinds |
+| 45 | lower the blinds in the kitchen | lower_blinds |
+| 46 | опусти жалюзи | lower_blinds |
+| 47 | set blinds position to 50% | set_blinds_position |
+| 48 | tilt the blinds to 45 degrees | set_blinds_angle |
+
+### 🤖 Пылесос (6)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 49 | vacuum the office | vacuum_start |
+| 50 | start the robot vacuum | vacuum_start |
+| 51 | пропылесось кухню | vacuum_start |
+| 52 | stop the vacuum | stop_vacuum |
+| 53 | dock the vacuum | dock_vacuum |
+| 54 | пылесос на базу | dock_vacuum |
+
+### 🔒 Безопасность (10)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 55 | lock the front door | lock_door |
+| 56 | unlock the back door | unlock_door |
+| 57 | запри входную дверь | lock_door |
+| 58 | is the front door locked? | query_door_status |
+| 59 | arm the alarm system | arm_alarm_system |
+| 60 | поставь сигнализацию | arm_alarm_system |
+| 61 | disarm the alarm | disarm_alarm_system |
+| 62 | cancel the 06:00 alarm | cancel_alarm |
+| 63 | what's the alarm status? | query_alarm_status |
+| 64 | panic alarm! | trigger_panic_alarm |
+
+### 🎵 Медиа (12)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 65 | play jazz playlist in the kitchen | play_music |
+| 66 | stop music in the bathroom | stop_music |
+| 67 | pause the music | pause_music |
+| 68 | play radio station jazz fm | play_radio_station |
+| 69 | set volume to 50% | set_volume |
+| 70 | mute the audio | mute_audio |
+| 71 | turn on the tv in the living room | turn_on_tv |
+| 72 | turn off the tv | turn_off_tv |
+| 73 | set tv channel to 5 | set_tv_channel |
+| 74 | set tv volume to 30 | set_tv_volume |
+| 75 | включи музыку на кухне | play_music |
+| 76 | останови музыку в гостиной | stop_music |
+
+### 🌿 Сад (4)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 77 | start irrigation zone 1 | start_irrigation_zone |
+| 78 | включи полив газона | start_irrigation_zone |
+| 79 | stop irrigation zone 3 | stop_irrigation_zone |
+| 80 | what's the soil moisture level? | query_soil_moisture |
+
+### 📡 Сенсоры (2)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 81 | what's the air quality in the living room? | query_air_quality |
+| 82 | set motion sensitivity to high | set_motion_sensitivity |
+
+### ⏰ Будильник (3)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 83 | wake me up at 07:30 | set_alarm |
+| 84 | поставь будильник на 7 утра | set_alarm |
+| 85 | отмени будильник | cancel_alarm |
+
+### 🎬 Сцены (5)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 86 | activate movie night scene | activate_scene |
+| 87 | switch to away mode | activate_scene |
+| 88 | night mode | activate_scene |
+| 89 | включи сцену кинотеатр | activate_scene |
+| 90 | режим ночи | activate_scene |
+
+### 🔌 Розетки (2)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 91 | toggle the outlet in the kitchen | toggle_outlet |
+| 92 | включи розетку | toggle_outlet |
+
+### 🚫 Edge cases (3)
+
+| # | Фраза | Ожидаемый интент |
+|---|-------|-----------------|
+| 93 | what's the weather outside | none |
+| 94 | tell me a joke | none |
+| 95 | (дополнительно из regressions) | varies |
+
+---
+
+_Документация Vector Home v2. Все фазы 0–6 завершены. Router: 95/95=100%. Тестов: 130.._

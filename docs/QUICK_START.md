@@ -1,513 +1,508 @@
-# Vector Home — Простое руководство для всех
+# Vector Home v2 — Быстрый старт
 
-> Управляй домом голосом или текстом. Без интернета, без подписок, без облака.
-> Говоришь «включи свет в гостиной» — свет включается. Всё.
-
----
-
-## Что это и зачем
-
-Представь: ты заходишь домой и говоришь «включи свет в прихожей, поставь будильник на 7 утра». И это работает. Без интернета. Без ежемесячной подписки. Без отправки голоса на серверы Amazon или Яндекс.
-
-Vector Home — это программа на твоём компьютере, которая понимает русские и английские команды и переводит их в действия умного дома. Всё работает локально, у тебя дома. Никакие данные никуда не уходят.
-
-**Что можно делать:**
-- 💡 Включать и выключать свет в комнатах
-- 🌡️ Устанавливать температуру
-- 🔒 Закрывать и открывать замки
-- 🎵 Включать музыку
-- ⏰ Ставить будильники
-- 🎬 Включать сцены («кинотеатр», «доброе утро»)
-- 🤖 Запускать робот-пылесос
-
-И всё это — на **русском языке**, без интернета, на обычном ноутбуке.
+> Управляй умным домом голосом или текстом. Без облака, без GPU, без API-ключей.
 
 ---
 
-## Что тебе понадобится
+## Что это?
 
-### Обязательно
+Vector Home — твой личный ассистент для умного дома. Говоришь по-русски или по-английски — он понимает. Всё работает на твоём компьютере, никуда ничего не отправляет.
 
-| Что | Зачем | Пример |
-|-----|-------|--------|
-| Компьютер с Linux | Работает сервер Vector Home | Ноутбук, мини-ПК, Raspberry Pi 4 |
-| Home Assistant | Управляет умным домом | На том же компьютере или отдельно |
+```
+"Включи свет в гостиной"  →  2 секунды  →  💡 Свет горит
+"Set temperature to 22"  →  2 секунды  →  🌡️ 22°C
+"Поставь будильник на 7"  →  2 секунды  →  ⏰ Будильник установлен
+```
 
-### Опционально
+## 52 инструмента, 8 доменов
 
-| Что | Зачем |
-|-----|-------|
-| Микрофон | Для голосовых команд |
-| Колонка | Для голосовых ответов |
-| Умные лампочки | Чтобы было чем управлять |
-| Умный термостат | Чтобы настраивать температуру |
-| Умный замок | Чтобы закрывать двери |
+| Домен | 🔧 | Что умеет | Пример EN | Пример RU |
+|:------|---:|:----------|:----------|:----------|
+| 💡 Свет | 8 | Включить, выключить, приглушить, цвет, сцена, мигнуть, температура, статус | `turn on the lights` | `включи свет в гостиной` |
+| 🌡️ Климат | 9 | Температура, термостат, кондиционер, вентилятор, влажность, увлажнитель, осушитель | `set temperature to 22°C` | `установи 22 градуса` |
+| 🪟 Шторы | 6 | Открыть/закрыть шторы и жалюзи, позиция, угол наклона | `open the curtains` | `открой шторы` |
+| 🤖 Пылесос | 3 | Запустить, остановить, отправить на базу | `vacuum the office` | `пропылесось кухню` |
+| 🔒 Безопасность | 7 | Замок (открыть/закрыть/статус), сигнализация (поставить/снять/статус), тревога | `lock the front door` | `запри входную дверь` |
+| 🎵 Медиа | 10 | Музыка, радио, громкость, без звука, ТВ (вкл/выкл/канал/громкость) | `play jazz in the kitchen` | `включи музыку на кухне` |
+| 🌿 Сад | 3 | Полив (вкл/выкл), влажность почвы | `start irrigation zone 1` | `включи полив газона` |
+| 📡 Другое | 6 | Будильник, сцены, розетки, качество воздуха, датчик движения | `wake me up at 07:30` | `поставь будильник на 7 утра` |
 
 ---
 
-## Пример железа: «Квартира с Yeelight и Home Assistant»
+## Установка
 
-Вот реальный пример. У тебя:
-- **Компьютер** — любой ноутбук или мини-ПК с Linux (8 ГБ RAM минимум)
-- **Home Assistant** — установлен на этом же компьютере или на Raspberry Pi
-- **Умные лампочки** — 4 шт. Yeelight Color (гостиная, спальня, кухня, ванная)
-- **Умный термостат** — Sonoff TH16 с датчиком температуры (спальня)
-- **Умный замок** — Nuki Smart Lock (входная дверь)
+### Требования
 
-Всё это стоит ~10 000–15 000 ₽ и покупается на AliExpress или Ozon.
+| | Минимум | Рекомендуется |
+|---|---------|---------------|
+| CPU | Любой x86_64 | 4+ ядра |
+| RAM | 600 MB (только парсер) | 6 GB (с Qwen3 fallback) |
+| Диск | 1.5 GB | 2 GB |
+| GPU | Не нужен | — |
+| Python | 3.10+ | 3.12 |
+| Интернет | Не нужен | Для Ollama fallback |
+
+### Шаг 1. Клонирование
+
+```bash
+git clone https://github.com/Osmosy/vector-home.git
+cd vector-home
+pip install -r requirements.txt
+```
+
+### Шаг 2. Проверка
+
+```bash
+# 130 тестов — все должны пройти ✓
+python -m pytest tests/test_router.py -v
+```
+
+### Шаг 3. Запуск
+
+```bash
+# API-сервер (порт 8126) + веб-панель
+python -m src.api
+
+# CLI — текстовая команда
+python -m src.pipeline "turn on the lights in the living room"
+python -m src.pipeline "включи свет в гостиной"
+
+# CLI — интерактивный режим
+python -m src.pipeline --interactive
+
+# Голос (нужен faster-whisper)
+python -m src.voice --interactive
+```
 
 ---
 
-## Шаг 1. Установи Home Assistant
+## Веб-панель управления
 
-Home Assistant (HA) — это сердце умного дома. Он знает про все твои устройства и управляет ими.
+Открой **http://localhost:8126/panel** — тёмная тема, 8 вкладок с устройствами.
 
-### Если у тебя Raspberry Pi
+Что видишь на экране:
 
-1. Скачай образ Raspberry Pi Imager: https://www.raspberrypi.com/software/
-2. Вставь SD-карту в компьютер
-3. Открой Raspberry Pi Imager
-4. Выбери **«Other specific-purpose OS» → «Home Assistant and Home Automation» → «Home Assistant»**
-5. Выбери свою SD-карту → **Write**
-6. Вставь SD-карту в Raspberry Pi, подключи к роутеру кабелем
-7. Подожди 10–15 минут
-8. Открой в браузере: **http://homeassistant.local:8123**
-9. Создай аккаунт по инструкции на экране
-
-### Если у тебя обычный компьютер (Linux)
-
-```bash
-# Установи Docker (если нет)
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER
-# Перелогинься
-
-# Запусти Home Assistant
-docker run -d \
-  --name homeassistant \
-  --privileged \
-  --restart=unless-stopped \
-  -e TZ=Europe/Moscow \
-  -v /home/$USER/ha-config:/config \
-  -p 8123:8123 \
-  ghcr.io/home-assistant/home-assistant:stable
-```
-
-Открой в браузере: **http://localhost:8123**
-
-### Подключи устройства
-
-В Home Assistant:
-1. Зайди в **Настройки → Устройства и службы**
-2. Нажми **«Добавить интеграцию»**
-3. Найди своего производителя (Yeelight, Sonoff, Nuki и т.д.)
-4. Следуй инструкциям на экране
-
-**Для Yeelight:**
-- Найди «Yeelight» → нажми «Добавить»
-- Лампочки найдутся автоматически, если они в одной Wi-Fi сети
-
-**Для Sonoff (если через ESPHome):**
-- Нужно прошить Sonoff кастомной прошивкой ESPHome (инструкция на esphome.io)
-- Потом добавить интеграцию ESPHome в HA
-
-> 💡 **Совет:** Не хочешь прошивать? Используй интеграцию «Tuya» — многие устройства Sonoff работают через облако Tuya. Но для оффлайна нужна именно ESPHome.
+- **Шапка** — логотип «Vector Home v2», статус-бар (зелёные/красные точки: WebSocket, Home Assistant, счётчик инструментов)
+- **Строка ввода** — текстовое поле + кнопка «▶» отправить + кнопка «🎤» голосовой ввод (Web Speech API)
+- **Результат** — карточка с разобранной командой: название инструмента, аргументы, HA-вызов, задержка
+- **Вкладки устройств** — 8 кнопок: 💡 Свет · 🌡️ Климат · 🪟 Шторы · 🤖 Пылесос · 🔒 Безопасность · 🎵 Медиа · 🌿 Сад · 📡 Другое
+- **Карточки** — при клике на вкладку появляются карточки с иконками, названиями и привязанными командами. Нажал карточку — команда ушла
+- **История** — список последних команд: текст → инструмент → время. Можно кликнуть строку, чтобы повторить
+- **Подвал** — версия, количество инструментов, статус подключения
 
 ---
 
-## Шаг 2. Создай токен Home Assistant
+## Примеры команд
 
-Этот токен нужен Vector Home, чтобы отправлять команды в HA.
-
-1. Открой Home Assistant
-2. Зайди в **Настройки → Пользователи** (или кликни на свой аватар слева внизу)
-3. Прокрути вниз до **«Долгоживущие токены доступа»**
-4. Нажми **«Создать токен»**
-5. Назови его «Vector Home»
-6. **Скопируй токен** — он показывается только один раз! Сохрани его куда-нибудь.
-
----
-
-## Шаг 3. Установи Vector Home
-
-### 3.1. Скачай зависимости
+### Свет (8 инструментов)
 
 ```bash
-# Установи Python-пакеты
-pip3 install --break-system-packages torch safetensors numpy httpx uvicorn
-```
-
-### 3.2. Скачай GPT-2 модель
-
-```bash
-cd ~/projects
-
-# Склонируй репозиторий с базовой моделью
-git clone https://github.com/barometech/gpt2-tool-call.git
-cd gpt2-tool-call
-git lfs pull    # Скачивает веса модели (~475 МБ)
-cd ..
-```
-
-### 3.3. Поставь Vector Home
-
-```bash
-# Если у тебя уже есть папка vector-home — просто перейди в неё
-cd ~/projects/vector-home
-```
-
-Убедись, что модели на месте:
-```bash
-ls -lh models/
-# Должны быть:
-# gpt2_ha_best.pt       — англ. модель (475 МБ)
-# gpt2_ha_ru_best.pt    — русская+англ. модель (498 МБ)
-```
-
-### 3.4. Голос (опционально)
-
-Если хочешь голосовое управление и голосовые ответы — установи Piper:
-
-```bash
-# Скачай Piper
-wget -q https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_linux_x86_64.tar.gz
-tar xf piper_linux_x86_64.tar.gz
-sudo mv piper/piper /usr/local/bin/
-rm -rf piper piper_linux_x86_64.tar.gz
-
-# Голоса уже в models/voices/:
-# en_US-lessac-medium.onnx  — английский
-# ru_RU-dmitri-medium.onnx  — русский
-```
-
-Если не нужен голос — пропусти этот шаг. Текстовые команды будут работать и без Piper.
-
----
-
-## Шаг 4. Запусти
-
-### Проверка без умного дома (dry-run)
-
-Сначала проверь, что всё работает, не подключаясь к HA:
-
-```bash
-cd ~/projects/vector-home
-
-VH_DRY_RUN=1 python3 -m src.api
-```
-
-Открой другой терминал и попробуй:
-
-```bash
-# Русская команда
+# Включить
 curl -X POST http://localhost:8126/command \
   -H 'Content-Type: application/json' \
-  -d '{"utterance": "включи свет в гостиной"}'
+  -d '{"text": "turn on the lights in the living room"}'
 
-# Английская команда
+# Выключить (по-русски)
 curl -X POST http://localhost:8126/command \
   -H 'Content-Type: application/json' \
-  -d '{"utterance": "turn on the lights in the living room"}'
+  -d '{"text": "выключи свет на кухне"}'
+
+# Приглушить
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "dim the lights to 30%"}'
+
+# Цвет
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "set the light color to red"}'
 ```
 
-Должен прийти ответ:
+### Климат (9 инструментов)
+
+```bash
+# Температура
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "установи 22 градуса в спальне"}'
+
+# Кондиционер
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "set AC to cool mode"}'
+
+# Влажность
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "какая влажность?"}'
+```
+
+### Шторы (6 инструментов)
+
+```bash
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "открой шторы"}'
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "set blinds to 50%"}'
+```
+
+### Пылесос (3 инструмента)
+
+```bash
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "пропылесось кухню"}'
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "dock the vacuum"}'
+```
+
+### Безопасность (7 инструментов)
+
+```bash
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "запри входную дверь"}'
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "arm the alarm"}'
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "тревога!"}'
+```
+
+### Медиа (10 инструментов)
+
+```bash
+# Музыка
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "play jazz in the kitchen"}'
+
+# Радио
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "включи радио"}'
+
+# ТВ
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "включи телевизор"}'
+
+# Громкость
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "set volume to 50%"}'
+```
+
+### Сад (3 инструмента)
+
+```bash
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "включи полив газона"}'
+
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "what is the soil moisture?"}'
+```
+
+### Будильники, сцены, розетки и датчики (6 инструментов)
+
+```bash
+# Будильник
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "поставь будильник на 7 утра"}'
+
+# Сцена
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "activate movie night"}'
+
+# Розетка
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "toggle the outlet"}'
+
+# Качество воздуха
+curl -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "качество воздуха?"}'
+```
+
+---
+
+## Формат ответа v2
+
+Каждая команда возвращает JSON с полем `ha_call` — это готовый вызов для Home Assistant:
+
 ```json
 {
   "tool": "turn_on_light",
-  "arguments": {"room": "гостиной"},
+  "arguments": {"room": "living_room"},
+  "ha_call": {
+    "domain": "light",
+    "service": "turn_on",
+    "entity_id": "light.living_room",
+    "service_data": {}
+  },
+  "latency_s": 0.3,
+  "used_fallback": false
+}
+```
+
+### Примеры ответов
+
+**Включить свет (EN):**
+```bash
+# Запрос
+curl -s -X POST http://localhost:8126/command \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "turn on the lights in the living room"}'
+
+# Ответ
+{
+  "tool": "turn_on_light",
+  "arguments": {"room": "living_room"},
   "ha_call": {
     "domain": "light",
     "service": "turn_on",
     "entity_id": "light.living_room"
   },
-  "dry_run": true,
-  "message": "[DRY RUN] Would call light.turn_on on light.living_room"
+  "latency_s": 0.2,
+  "used_fallback": false
 }
 ```
 
-Видишь `"dry_run": true` — значит команда распознана, но не отправлена в HA. Всё работает!
-
-### Подключение к реальному Home Assistant
-
-Теперь подключим к настоящему умному дому:
-
+**Установить температуру (RU):**
 ```bash
-cd ~/projects/vector-home
-
-HA_URL=http://homeassistant.local:8123 \
-HA_TOKEN=тот_самый_токен_из_шага_2 \
-VH_DRY_RUN=0 \
-python3 -m src.api
-```
-
-> 💡 Если HA на том же компьютере: `HA_URL=http://localhost:8123`
-> Если на Raspberry Pi: `HA_URL=http://homeassistant.local:8123`
-
-Теперь повтори команду — свет должен включиться!
-
-```bash
-curl -X POST http://localhost:8126/command \
+# Запрос
+curl -s -X POST http://localhost:8126/command \
   -H 'Content-Type: application/json' \
-  -d '{"utterance": "включи свет в гостиной"}'
+  -d '{"text": "поставь 22 градуса в спальне"}'
+
+# Ответ
+{
+  "tool": "set_temperature",
+  "arguments": {"room": "bedroom", "temperature_c": 22},
+  "ha_call": {
+    "domain": "climate",
+    "service": "set_temperature",
+    "entity_id": "climate.bedroom",
+    "service_data": {"temperature": 22}
+  },
+  "latency_s": 0.4,
+  "used_fallback": false
+}
 ```
 
-Ответ будет без `"dry_run": true` — это значит команда реально отправлена в HA.
-
----
-
-## Шаг 5. Говори голосом (опционально)
-
+**Запереть дверь (RU):**
 ```bash
-cd ~/projects/vector-home
-
-# Запиши команду голосом (нужен микрофон)
-# Например, через arecord:
-arecord -f cd -d 3 /tmp/voice.wav
-
-# Обработай голосовую команду
-python3 -m src.voice /tmp/voice.wav --tts piper --tts-voice ru
-```
-
-Что произойдёт:
-1. Whisper распознает речь: «включи свет в гостиной»
-2. Router определит: turn_on_light
-3. Parser извлечёт: room = «гостиной»
-4. HABridge маппит: light.living_room
-5. Команда уйдёт в HA — свет включится
-6. Piper ответит голосом: «Включаю свет в гостиной»
-
----
-
-## Все команды
-
-Вот список всего, что понимает Vector Home. Говори как хочешь — модель понимает разные формулировки.
-
-### 💡 Свет
-
-| Что хочешь | Скажи (RU) | Скажи (EN) |
-|---|---|---|
-| Включить свет | «включи свет в гостиной» | «turn on the lights in the living room» |
-| Выключить свет | «выключи свет на кухне» | «turn off the kitchen lights» |
-
-Комнаты: гостиная, спальня, кухня, ванная, кабинет, прихожая, гараж, детская, коридор
-
-### 🌡️ Температура
-
-| Что хочешь | Скажи (RU) | Скажи (EN) |
-|---|---|---|
-| Установить | «установи температуру 22 градуса в спальне» | «set bedroom to 22 degrees» |
-| Узнать | «какая температура в ванной» | «what is the temperature in the office» |
-
-### 🔒 Двери
-
-| Что хочешь | Скажи (RU) | Скажи (EN) |
-|---|---|---|
-| Закрыть | «запри входную дверь» | «lock the front door» |
-| Открыть | «открой заднюю дверь» | «unlock the back door» |
-
-Двери: входная, задняя, гаражная, балконная
-
-### 🎵 Музыка
-
-| Что хочешь | Скажи (RU) | Скажи (EN) |
-|---|---|---|
-| Включить | «включи джаз на кухне» | «play jazz in the kitchen» |
-| Остановить | «останови музыку в гостиной» | «stop music in the bathroom» |
-
-Жанры: джаз, рок, поп, классика, лоу-фай
-
-### ⏰ Будильник
-
-| Что хочешь | Скажи (RU) | Скажи (EN) |
-|---|---|---|
-| Поставить | «поставь будильник на 07:30» | «wake me up at 07:30» |
-| Отменить | «отмени будильник» | «cancel the alarm» |
-
-### 🎬 Сцены
-
-| Что хочешь | Скажи (RU) | Скажи (EN) |
-|---|---|---|
-| Активировать | «включи сцену кинотеатр» | «activate movie night» |
-
-Сцены: кинотеатр, утро, ночь, вечеринка, романтика, отъезд, фокус
-
-### 🤖 Пылесос
-
-| Что хочешь | Скажи (RU) | Скажи (EN) |
-|---|---|---|
-| Запустить | «пропылесось кухню» | «vacuum the office» |
-
----
-
-## Что происходит «под капотом»
-
-Тебе не обязательно это знать, но если интересно:
-
-```
-Ты говоришь: «Включи свет в гостиной»
-       │
-       ▼
-┌─────────────┐
-│   Router     │  Регулярки, 0мс
-│  (12+ намеров)│  Определяет: это «включить свет» = turn_on_light
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Parser     │  GPT-2, ~3 сек
-│  (124M FT)  │  Извлекает: room = «гостиной»
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  HABridge    │  Маппит: гостиной → living_room
-│              │  Формирует: light.turn_on(living_room)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│Home          │  Включает лампочку
-│Assistant     │
-└─────────────┘
-```
-
-Всё это работает на **твоём компьютере**, без интернета, без облака. Единственное, что нужно — Home Assistant должен быть доступен по сети.
-
----
-
-## Автозапуск
-
-Чтобы Vector Home запускался сам при включении компьютера:
-
-### systemd (Linux)
-
-```bash
-cat > ~/.config/systemd/user/vector-home.service << 'EOF'
-[Unit]
-Description=Vector Home Smart Home Server
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/home/lenovo/projects/vector-home
-Environment=HA_URL=http://homeassistant.local:8123
-Environment=HA_TOKEN=тот_самый_токен
-Environment=VH_DRY_RUN=0
-Environment=VH_PORT=8126
-ExecStart=/usr/bin/python3 -m src.api
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=default.target
-EOF
-
-systemctl --user daemon-reload
-systemctl --user enable vector-home
-systemctl --user start vector-home
-```
-
-Проверь:
-```bash
-systemctl --user status vector-home
-curl http://localhost:8126/health
-```
-
----
-
-## Если что-то не работает
-
-### «Model not found» / «FT weights not found»
-
-Проверь, что модели на месте:
-```bash
-ls -l ~/projects/vector-home/models/*.pt
-ls -l ~/projects/gpt2-tool-call/src/
-```
-
-Если `gpt2-tool-call` в другой папке — укажи путь:
-```bash
-GPT2_REPO=/другой/путь/gpt2-tool-call python3 -m src.api
-```
-
-### Команда не распознаётся
-
-Проверь через API напрямую:
-```bash
-curl -X POST http://localhost:8126/command \
+# Запрос
+curl -s -X POST http://localhost:8126/command \
   -H 'Content-Type: application/json' \
-  -d '{"utterance": "включи свет в гостиной"}'
+  -d '{"text": "запри входную дверь"}'
+
+# Ответ
+{
+  "tool": "lock_door",
+  "arguments": {"door": "front_door"},
+  "ha_call": {
+    "domain": "lock",
+    "service": "lock",
+    "entity_id": "lock.front_door"
+  },
+  "latency_s": 0.1,
+  "used_fallback": false
+}
 ```
 
-Если в ответе `"tool": "none"` — роутер не понял команду. Перефразируй: «зажги свет в гостиной», «включи освещение в гостиной».
+**Не распознано:**
+```json
+{
+  "tool": "none",
+  "arguments": {},
+  "ha_call": null,
+  "latency_s": 0,
+  "used_fallback": false
+}
+```
 
-Если `"tool": "turn_on_light"`, но `"arguments": {}` — парсер не смог извлечь аргументы. Это редкий случай, попробуй другую формулировку.
-
-### Не работает с Home Assistant
-
-1. Убедись, что HA запущен: открой `http://homeassistant.local:8123` в браузере
-2. Проверь токен: он должен быть **долгоживущим** (Long-Lived Access Token), не обычным паролем
-3. Запусти с `VH_DRY_RUN=1` — посмотри, что команда распознаётся, но не отправляется
-4. Переключи на `VH_DRY_RUN=0` — теперь команды отправятся в HA
-
-### Кириллица в entity_id
-
-Если видишь `light.гостиной` вместо `light.living_room` — `_normalize()` не нашёл маппинг. Это не должно происходить с текущей версией, но если появилась новая комната — добавь её в `src/ha_bridge.py` в `RU_ROOM_MAP_EXT`.
-
-### Не слышит голос
-
-1. Проверь микрофон: `arecord -f cd -d 3 /tmp/test.wav && aplay /tmp/test.wav`
-2. Проверь Piper: `echo "Привет" | piper --model models/voices/ru_RU-dmitri-medium.onnx --output_file /tmp/hello.wav`
-3. Проверь Whisper: `python3 -c "from faster_whisper import WhisperModel; m=WhisperModel('tiny'); print(m.transcribe('/tmp/test.wav')[0])"`
+> 💡 Русские названия комнат автоматически переводятся: `гостиная` → `living_room`, `спальня` → `bedroom`, `кухня` → `kitchen` и т.д.
 
 ---
 
-## Системные требования
+## Подключение к Home Assistant
 
-| Компонент | Минимум | Рекомендуется |
-|---|---|---|
-| CPU | Любой x86_64, 2 ядра | 4+ ядра |
-| RAM | 1 ГБ (без fallback) | 6 ГБ (с Ollama) |
-| Диск | 2 ГБ | 5 ГБ |
-| ОС | Linux (Ubuntu 22.04+, Debian 12+) | Любой современный Linux |
-| Python | 3.10+ | 3.11+ |
-| Сеть | Не нужна для работы* | Для установки пакетов |
+### Шаг 1. Установи Home Assistant
 
-\* Интернет нужен только для установки pip-пакетов. После установки — полностью оффлайн.
+Если ещё не установлен — см. [HA Installation](https://www.home-assistant.io/installation/). Рекомендуемый вариант: Home Assistant OS на Raspberry Pi или мини-ПК.
 
----
+### Шаг 2. Создай Long-Lived Access Token
 
-## Безопасность
+1. Открой HA → Профиль (левое меню, внизу) → Безопасность
+2. Прокрути до «Долгосрочные токены доступа»
+3. Нажми «Создать токен»
+4. Назови: `Vector Home`
+5. Скопируй токен (показывается один раз!)
 
-- **Никакие данные не уходят** за пределы твоей сети
-- **Токен HA** хранится в переменной окружения — не коммить его в git
-- **Dry-run по умолчанию** — пока не переключишь `VH_DRY_RUN=0`, команды не отправляются в HA
-- **Firewall**: порт 8126 открыт только на localhost — доступен только с этого компьютера
-
----
-
-## Краткая шпаргалка
+### Шаг 3. Запусти с live-режимом
 
 ```bash
-# Запуск без HA (проверка)
-cd ~/projects/vector-home
-VH_DRY_RUN=1 python3 -m src.api
+export HA_URL="http://homeassistant.local:8123"
+export HA_TOKEN="your_long_lived_token_here"
 
-# Запуск с HA
-HA_URL=http://homeassistant.local:8123 HA_TOKEN=токен VH_DRY_RUN=0 python3 -m src.api
+# Live-режим — команды реально выполняются в HA
+python -m src.api --live
 
-# Проверка
-curl http://localhost:8126/health          # статус
-curl http://localhost:8126/tools            # список команд
-curl -X POST http://localhost:8126/command -H 'Content-Type: application/json' -d '{"utterance":"включи свет"}'
-
-# Голос (опционально)
-arecord -f cd -d 3 /tmp/v.wav && python3 -m src.voice /tmp/v.wav --tts piper --tts-voice ru
-
-# Автозапуск
-systemctl --user enable vector-home
+# Или через CLI
+python -m src.pipeline --live "turn on the lights in the living room"
 ```
+
+### Шаг 4. Переименуй entity_id
+
+Чтобы Vector Home находил устройства, переименуй entity_id в HA:
+
+**Свет:** `light.living_room`, `light.bedroom`, `light.kitchen`, `light.bathroom`
+
+**Климат:** `climate.bedroom`, `climate.living_room_ac`
+
+**Замки:** `lock.front_door`, `lock.back_door`
+
+**Медиа:** `media_player.kitchen`, `media_player.bedroom_tv`
+
+См. полный список маппингов в [HARDWARE_GUIDE.md](HARDWARE_GUIDE.md).
 
 ---
 
-**Вопросы?** Открой `docs/USER_GUIDE.md` для технических деталей или `docs/DEVELOPMENT_LOG.md` для истории разработки.
+## Переменные окружения
+
+| Переменная | Описание | По умолчанию |
+|:-----------|:---------|:------------|
+| `HA_URL` | Адрес Home Assistant | `http://homeassistant.local:8123` |
+| `HA_TOKEN` | Long-lived access token | пусто = dry run |
+| `VH_PORT` | Порт API-сервера | `8126` |
+| `GPT2_REPO` | Путь к gpt2-tool-call | `../gpt2-tool-call` |
+
+---
+
+## API-эндпоинты
+
+| Метод | Путь | Описание |
+|:------|:-----|:---------|
+| `POST` | `/command` | Обработка текстовой команды |
+| `GET` | `/health` | Статус системы |
+| `GET` | `/tools` | Список 52 инструментов |
+| `GET` | `/entities?domain=light` | Сущности HA (с фильтром) |
+| `POST` | `/ha/call` | Прямой вызов HA |
+| `GET` | `/history?limit=20` | История команд |
+| `WS` | `/ws` | WebSocket (real-time) |
+| `GET` | `/panel` | Веб-панель управления |
+
+---
+
+## Оборудование
+
+Подробный гайд по выбору и настройке железа — в [HARDWARE_GUIDE.md](HARDWARE_GUIDE.md).
+
+**Кратко — бюджетный набор (~4 300 ₽):**
+
+- 4× Yeelight Color (лампочки) — 2 400 ₽
+- 1× Sonoff TH Elite + DHT22 (термостат) — 1 000 ₽
+- 1× Sonoff S31 (розетка) — 500 ₽
+- 1× Sonoff SV (реле для замка) — 400 ₽
+
+**Оптимальный набор (~16 200 ₽):** + Nuki Smart Lock, BT-колонка
+
+**Продвинутый (~41 800 ₽):** + Роборок S6, Google Nest Mini, 6 лампочек, 2 термостата
+
+---
+
+## Устранение неполадок
+
+### Команды не распознаются
+
+1. Проверь, что сервер запущен: `curl http://localhost:8126/health`
+2. Попробуй простые команды: `turn on the lights`, `включи свет`
+3. Проверь кодировку: русские буквы в UTF-8
+
+### HA не отвечает
+
+1. Проверь `HA_URL` — открой `http://homeassistant.local:8123` в браузере
+2. Проверь `HA_TOKEN` — создай новый, если старый не работает
+3. В dry run-режиме (без токена) команды парсятся, но не отправляются в HA
+
+### Устройство не подключается к Wi-Fi
+
+1. Убедись, что Wi-Fi 2.4 ГГц (не 5 ГГц!)
+2. Введи пароль правильно (особые символы, регистр)
+3. Перезагрузи роутер
+4. Поднеси устройство ближе к роутеру
+
+### ESPHome устройство не подключается после прошивки
+
+1. Проверь SSID и пароль в YAML-конфиге
+2. Подключись к Fallback AP (точка доступа с именем устройства)
+3. Открой http://192.168.4.1
+4. Введи правильные данные Wi-Fi
+5. Если не помогло — перепрошей через USB-UART
+
+### Home Assistant не видит устройство
+
+1. Убедись, что устройство в той же сети
+2. Перезагрузи HA: Настройки → Система → Перезагрузка
+3. Проверь IP устройства в роутере (DHCP-таблица)
+4. Добавь интеграцию вручную по IP
+
+---
+
+## Архитектура
+
+```
+Голос / Текст
+      ↓
+┌─────────────┐    ┌──────────────┐
+│   Router v2  │───→│   Parser v2  │
+│ 95 правил    │    │ GPT-2 124M  │
+│ 100% EN/RU   │    │  52 инструм. │
+└──────┬──────┘    └──────┬───────┘
+       │                   │
+       └───────┬───────────┘
+               ↓
+       ┌───────────────┐
+       │   HA Bridge    │
+       │ 52→HA маппинг  │
+       │ RU→EN переводу│
+       └──────┬───────┘
+               ↓
+        Home Assistant
+```
+
+**Router v2** — 95 regex-правил для 52 интентов, EN+RU, 100% точность. Fallback на Qwen3:8B (Ollama) для неоднозначных команд.
+
+**Parser v2** — GPT-2 124M, single-tool парсинг, ~2 с/cоманду на CPU, 600 MB RAM.
+
+**HA Bridge** — 52 инструмента → Home Assistant service calls. Автоматический перевод русских названий комнат, дверей, сцен и режимов кондиционера.
+
+---
+
+## Что дальше?
+
+- 📄 [SPEC.md](SPEC.md) — техническое задание (подробная архитектура)
+- 🔧 [HARDWARE_GUIDE.md](HARDWARE_GUIDE.md) — выбор оборудования, ESPHome, инструкции
+- 🧪 `python -m pytest tests/test_router.py -v` — запуск тестов
+
+---
+
+<div align="center">
+
+Built by [Osmosy](https://github.com/Osmosy) · Powered by [gpt2-tool-call](https://github.com/barometech/gpt2-tool-call)
+
+</div>
