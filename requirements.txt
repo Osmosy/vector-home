@@ -6,3 +6,4 @@ fastapi
 uvicorn
 httpx
 pyyaml
+huggingface-hub

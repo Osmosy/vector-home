@@ -1,6 +1,6 @@
 # Model Weights — Pin Reference
 
-This project depends on pre-trained GPT-2 weights. Here's the exact provenance:
+This project bundles GPT-2 core code and auto-downloads base weights at runtime.
 
 ## Required Weights (tracked via Git LFS)
 
@@ -32,12 +32,28 @@ This project depends on pre-trained GPT-2 weights. Here's the exact provenance:
 | `voices/ru_RU-dmitri-medium.onnx` | 61 MB | Piper RU voice |
 | `voices/ru_RU-dmitri-medium.onnx.json` | config | Piper RU config |
 
-## Base Model (NOT included, downloaded at runtime)
+## Base GPT-2 (auto-downloaded at runtime)
 
-GPT-2 base weights are auto-downloaded by `parser.py` on first run from `barometech/gpt2-tool-call`:
-- Repository: https://github.com/barometech/gpt2-tool-call
-- Pinned commit: `d3c71bb`
-- Base weights: `weights/base_gpt2/` (~475 MB)
+Base GPT-2 weights (`model.safetensors`, 523 MB) are **not tracked in git** (exceeds GitHub
+free LFS quota). On first run, `_ensure_base_gpt2()` in `src/gpt2_core/integrated_gpt2_torch.py`
+auto-downloads from HuggingFace: `openai-community/gpt2`.
+
+Config files are tracked in-repo (`models/base_gpt2/*.json`), only `model.safetensors` downloads.
+
+Manual download (if needed):
+```bash
+pip install huggingface-hub
+huggingface-cli download openai-community/gpt2 --local-dir models/base_gpt2
+```
+
+## Embedded GPT-2 Core (in-repo)
+
+| File | Source |
+|------|--------|
+| `src/gpt2_core/integrated_gpt2_torch.py` | Osmosy/gpt2-tool-call (fork of barometech@d3c71bb) |
+| `src/gpt2_core/modes_spec_v5.py` | Osmosy/gpt2-tool-call (fork of barometech@d3c71bb) |
+
+Fork: https://github.com/Osmosy/gpt2-tool-call
 
 ## Upstream Pin
 
@@ -51,5 +67,3 @@ base GPT-2 auto-download, --smoke mode, UTF-8 headers
 smart_home_v2.pt — merged dataset (1500 examples from 10 parallel agents)
 MD5: 378f4155bfe666e7efa2bc93a4b1bca2
 ```
-
-If upstream changes break compatibility, update this file and the parser weights.

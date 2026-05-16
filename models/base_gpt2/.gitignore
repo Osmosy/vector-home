@@ -1,0 +1,3 @@
+# model.safetensors is 523 MB — auto-downloads from HuggingFace at runtime
+# Do NOT track in git (exceeds GitHub LFS limit for free accounts)
+model.safetensors
