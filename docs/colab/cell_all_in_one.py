@@ -92,14 +92,20 @@ print(f"Training: {len(train_dataset)} ex, batch=4x4=16, seq=512, ~20-30 min")
 trainer_stats = trainer.train()
 print(f"Done! Loss: {trainer_stats.training_loss:.4f}")
 
-# === Export GGUF ===
-print("Merging LoRA adapter...")
+# Save merged model (16-bit) and LoRA adapter
+print("Saving merged 16-bit model...")
 model.save_pretrained_merged("merged_model", tokenizer, save_method="merged_16bit")
 
-print("Converting to GGUF...")
-model.save_pretrained_gguf("gguf_output", tokenizer, quantization_method="q4_k_m")
-print("GGUF saved to: gguf_output/unsloth.Q4_K_M.gguf")
+print("Saving LoRA adapter separately...")
+model.save_pretrained("smart-home-v2-lora")
+tokenizer.save_pretrained("smart-home-v2-lora")
 
-# Download link for Colab
+# Compress for download
+import shutil
+print("Creating archive for download...")
+shutil.make_archive("/content/smart-home-v2-merged", "tar", "/content", "merged_model")
+
 from google.colab.files import download
-download("gguf_output/unsloth.Q4_K_M.gguf")
+print("Downloading merged model (tar archive)...")
+print("File is ~8 GB. If browser download fails, upload to Google Drive instead.")
+download("/content/smart-home-v2-merged.tar")
