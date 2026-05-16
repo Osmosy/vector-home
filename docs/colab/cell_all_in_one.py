@@ -1,3 +1,16 @@
+import subprocess, sys
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
+    "unsloth",
+    "transformers>=4.47.0",
+    "bitsandbytes",
+    "peft",
+    "accelerate",
+    "trl",
+    "datasets",
+])
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
+    "--no-deps", "unsloth_zoo"])
+
 import torch, os, gc
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 torch.cuda.empty_cache()
