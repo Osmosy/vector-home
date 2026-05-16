@@ -1,0 +1,1171 @@
+[
+  {
+    "utterance": "How's the air quality in the living room?",
+    "gold_name": "query_air_quality",
+    "gold_args": {
+      "room": "living_room"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_air_quality\", \"description\": \"Smart home: query air quality\", \"parameters\": {\"type\": \"object\", \"properties\": {\"area\": {\"type\": \"string\", \"description\": \"The area\"}}, \"required\": []}}\n\n\nUSER: How's the air quality in the living room?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_air_quality\", \"arguments\": {\"room\": \"living_room\"}}"
+  },
+  {
+    "utterance": "dining room - something soft and warm please.",
+    "gold_name": "set_light_color",
+    "gold_args": {
+      "room": "dining room",
+      "color": "warm white",
+      "brightness_pct": 60
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_color\", \"description\": \"Smart home: set light color\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"color\": {\"type\": \"string\", \"description\": \"The color\"}, \"brightness_pct\": {\"type\": \"integer\", \"description\": \"The brightness pct\"}}, \"required\": [\"room\", \"color\"]}}\n\n\nUSER: dining room - something soft and warm please.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_color\", \"arguments\": {\"room\": \"dining room\", \"color\": \"warm white\", \"brightness_pct\": 60}}"
+  },
+  {
+    "utterance": "Tilt the master bedroom slats to about 25 degrees so the glare hits the ceiling instead of the desk.",
+    "gold_name": "set_blinds_angle",
+    "gold_args": {
+      "room": "master bedroom",
+      "angle": 25
+    },
+    "source": "barometech_sh_blinds",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_blinds_angle\", \"description\": \"Smart home: set blinds angle\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"angle\": {\"type\": \"integer\", \"description\": \"The angle\"}}, \"required\": [\"room\", \"angle\"]}}\n\n\nUSER: Tilt the master bedroom slats to about 25 degrees so the glare hits the ceiling instead of the desk.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_blinds_angle\", \"arguments\": {\"room\": \"master bedroom\", \"angle\": 25}}"
+  },
+  {
+    "utterance": "Turn the nursery amber.",
+    "gold_name": "set_light_color",
+    "gold_args": {
+      "room": "nursery",
+      "color": "amber"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_color\", \"description\": \"Smart home: set light color\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"color\": {\"type\": \"string\", \"description\": \"The color\"}, \"brightness_pct\": {\"type\": \"integer\", \"description\": \"The brightness pct\"}}, \"required\": [\"room\", \"color\"]}}\n\n\nUSER: Turn the nursery amber.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_color\", \"arguments\": {\"room\": \"nursery\", \"color\": \"amber\"}}"
+  },
+  {
+    "utterance": "Set the bedroom to movie mode.",
+    "gold_name": "set_light_scene",
+    "gold_args": {
+      "room": "bedroom",
+      "scene": "movie"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_scene\", \"description\": \"Smart home: set light scene\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"scene\": {\"type\": \"string\", \"description\": \"The scene\"}}, \"required\": [\"room\", \"scene\"]}}\n\n\nUSER: Set the bedroom to movie mode.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_scene\", \"arguments\": {\"room\": \"bedroom\", \"scene\": \"movie\"}}"
+  },
+  {
+    "utterance": "Activate dinner party.",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "dinner party"
+    },
+    "source": "barometech_sh_timers",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: Activate dinner party.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"dinner party\"}}"
+  },
+  {
+    "utterance": "I'm freezing in my office, can you set it to 70 fahrenheit?",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "office",
+      "temperature_c": 21.1,
+      "mode": "heat"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: I'm freezing in my office, can you set it to 70 fahrenheit?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"office\", \"temperature_c\": 21.1, \"mode\": \"heat\"}}"
+  },
+  {
+    "utterance": "Use the focus scene.",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "focus"
+    },
+    "source": "barometech_sh_timers",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: Use the focus scene.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"focus\"}}"
+  },
+  {
+    "utterance": "It feels chilly in here, what's the office reading right now?",
+    "gold_name": "query_temperature",
+    "gold_args": {
+      "room": "office"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_temperature\", \"description\": \"Get the current temperature of a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: It feels chilly in here, what's the office reading right now?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_temperature\", \"arguments\": {\"room\": \"office\"}}"
+  },
+  {
+    "utterance": "The living room TV is blasting, drop it to 5.",
+    "gold_name": "set_tv_volume",
+    "gold_args": {
+      "room": "living room",
+      "volume_pct": 5
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_tv_volume\", \"description\": \"Smart home: set tv volume\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"volume_pct\": {\"type\": \"integer\", \"description\": \"The volume pct\"}}, \"required\": [\"room\", \"volume_pct\"]}}\n\n\nUSER: The living room TV is blasting, drop it to 5.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_tv_volume\", \"arguments\": {\"room\": \"living room\", \"volume_pct\": 5}}"
+  },
+  {
+    "utterance": "What's the temperature in the kitchen?",
+    "gold_name": "query_temperature",
+    "gold_args": {
+      "room": "kitchen"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_temperature\", \"description\": \"Get the current temperature of a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: What's the temperature in the kitchen?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_temperature\", \"arguments\": {\"room\": \"kitchen\"}}"
+  },
+  {
+    "utterance": "Enable night alarm.",
+    "gold_name": "arm_alarm_system",
+    "gold_args": {
+      "mode": "night"
+    },
+    "source": "barometech_sh_security",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"arm_alarm_system\", \"description\": \"Smart home: arm alarm system\", \"parameters\": {\"type\": \"object\", \"properties\": {\"mode\": {\"type\": \"string\", \"description\": \"The mode\"}}, \"required\": [\"mode\"]}}\n\n\nUSER: Enable night alarm.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"arm_alarm_system\", \"arguments\": {\"mode\": \"night\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "stop_music",
+    "gold_args": {
+      "room": "nursery"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"stop_music\", \"description\": \"Stop playing music in a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"stop_music\", \"arguments\": {\"room\": \"nursery\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "cancel_alarm",
+    "gold_args": {
+      "time": "19:45"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"cancel_alarm\", \"description\": \"Cancel an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"cancel_alarm\", \"arguments\": {\"time\": \"19:45\"}}"
+  },
+  {
+    "utterance": "Water the back lawn for half an hour.",
+    "gold_name": "start_irrigation_zone",
+    "gold_args": {
+      "zone": "back lawn",
+      "duration_min": 30
+    },
+    "source": "barometech_sh_garden",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"start_irrigation_zone\", \"description\": \"Smart home: start irrigation zone\", \"parameters\": {\"type\": \"object\", \"properties\": {\"zone\": {\"type\": \"string\", \"description\": \"The zone\"}, \"duration_min\": {\"type\": \"integer\", \"description\": \"The duration min\"}}, \"required\": [\"zone\"]}}\n\n\nUSER: Water the back lawn for half an hour.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"start_irrigation_zone\", \"arguments\": {\"zone\": \"back lawn\", \"duration_min\": 30}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "vacuum_start",
+    "gold_args": {
+      "room": "nursery"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"vacuum_start\", \"description\": \"Start the robot vacuum cleaner\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name or 'everywhere'\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"vacuum_start\", \"arguments\": {\"room\": \"nursery\"}}"
+  },
+  {
+    "utterance": "Play Thriller in the garage at 65.",
+    "gold_name": "play_music",
+    "gold_args": {
+      "song": "Thriller",
+      "room": "garage",
+      "volume_pct": 65
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"play_music\", \"description\": \"Play music in a room\", \"parameters\": {\"song\": {\"type\": \"string\", \"description\": \"Song or playlist name\"}, \"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: Play Thriller in the garage at 65.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"play_music\", \"arguments\": {\"song\": \"Thriller\", \"room\": \"garage\", \"volume_pct\": 65}}"
+  },
+  {
+    "utterance": "Check temperature in the office.",
+    "gold_name": "query_temperature",
+    "gold_args": {
+      "room": "office"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_temperature\", \"description\": \"Get the current temperature of a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: Check temperature in the office.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_temperature\", \"arguments\": {\"room\": \"office\"}}"
+  },
+  {
+    "utterance": "Going on vacation, set vacation scene.",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "vacation"
+    },
+    "source": "barometech_sh_timers",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: Going on vacation, set vacation scene.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"vacation\"}}"
+  },
+  {
+    "utterance": "Change the master bedroom fan to high.",
+    "gold_name": "set_fan_speed",
+    "gold_args": {
+      "room": "master bedroom",
+      "speed": "high"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_fan_speed\", \"description\": \"Smart home: set fan speed\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"speed\": {\"type\": \"string\", \"description\": \"The speed\"}}, \"required\": [\"room\", \"speed\"]}}\n\n\nUSER: Change the master bedroom fan to high.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_fan_speed\", \"arguments\": {\"room\": \"master bedroom\", \"speed\": \"high\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "dining room",
+      "temperature_c": 22
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"dining room\", \"temperature_c\": 22}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "hallway",
+      "temperature_c": 27
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"hallway\", \"temperature_c\": 27}}"
+  },
+  {
+    "utterance": "Shut off living room lighting.",
+    "gold_name": "turn_off_light",
+    "gold_args": {
+      "room": "living room"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"turn_off_light\", \"description\": \"Turn off a light in a specified room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: Shut off living room lighting.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"turn_off_light\", \"arguments\": {\"room\": \"living room\"}}"
+  },
+  {
+    "utterance": "Run the vacuum in the hallway.",
+    "gold_name": "vacuum_start",
+    "gold_args": {
+      "area": "hallway"
+    },
+    "source": "barometech_sh_cleaning",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"vacuum_start\", \"description\": \"Start the robot vacuum cleaner\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name or 'everywhere'\"}}}\n\n\nUSER: Run the vacuum in the hallway.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"vacuum_start\", \"arguments\": {\"area\": \"hallway\"}}"
+  },
+  {
+    "utterance": "Stop watering the vegetable garden.",
+    "gold_name": "stop_irrigation_zone",
+    "gold_args": {
+      "zone": "vegetable garden"
+    },
+    "source": "barometech_sh_garden",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"stop_irrigation_zone\", \"description\": \"Smart home: stop irrigation zone\", \"parameters\": {\"type\": \"object\", \"properties\": {\"zone\": {\"type\": \"string\", \"description\": \"The zone\"}}, \"required\": [\"zone\"]}}\n\n\nUSER: Stop watering the vegetable garden.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"stop_irrigation_zone\", \"arguments\": {\"zone\": \"vegetable garden\"}}"
+  },
+  {
+    "utterance": "How humid is the nursery?",
+    "gold_name": "query_humidity",
+    "gold_args": {
+      "room": "nursery"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_humidity\", \"description\": \"Smart home: query humidity\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}}, \"required\": [\"room\"]}}\n\n\nUSER: How humid is the nursery?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_humidity\", \"arguments\": {\"room\": \"nursery\"}}"
+  },
+  {
+    "utterance": "Set the bathroom thermostat to 20 degrees Celsius.",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "bathroom",
+      "temperature_c": 20
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: Set the bathroom thermostat to 20 degrees Celsius.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"bathroom\", \"temperature_c\": 20}}"
+  },
+  {
+    "utterance": "It's been muggy upstairs all day, can you confirm what the bedroom sensor thinks?",
+    "gold_name": "query_humidity",
+    "gold_args": {
+      "room": "bedroom"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_humidity\", \"description\": \"Smart home: query humidity\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}}, \"required\": [\"room\"]}}\n\n\nUSER: It's been muggy upstairs all day, can you confirm what the bedroom sensor thinks?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_humidity\", \"arguments\": {\"room\": \"bedroom\"}}"
+  },
+  {
+    "utterance": "Turn on the humidifier in the hallway.",
+    "gold_name": "toggle_humidifier",
+    "gold_args": {
+      "room": "hallway",
+      "state": "on"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"toggle_humidifier\", \"description\": \"Smart home: toggle humidifier\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"state\": {\"type\": \"string\", \"description\": \"The state\"}}, \"required\": [\"room\", \"state\"]}}\n\n\nUSER: Turn on the humidifier in the hallway.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"toggle_humidifier\", \"arguments\": {\"room\": \"hallway\", \"state\": \"on\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "утро"
+    },
+    "source": "vh_ru",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"утро\"}}"
+  },
+  {
+    "utterance": "Angle the bathroom blind slats to 20.",
+    "gold_name": "set_blinds_angle",
+    "gold_args": {
+      "room": "bathroom",
+      "angle": 20
+    },
+    "source": "barometech_sh_blinds",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_blinds_angle\", \"description\": \"Smart home: set blinds angle\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"angle\": {\"type\": \"integer\", \"description\": \"The angle\"}}, \"required\": [\"room\", \"angle\"]}}\n\n\nUSER: Angle the bathroom blind slats to 20.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_blinds_angle\", \"arguments\": {\"room\": \"bathroom\", \"angle\": 20}}"
+  },
+  {
+    "utterance": "Way too loud in the kitchen, knock it down to 10.",
+    "gold_name": "set_volume",
+    "gold_args": {
+      "room": "kitchen",
+      "volume_pct": 10
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_volume\", \"description\": \"Smart home: set volume\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"volume_pct\": {\"type\": \"integer\", \"description\": \"The volume pct\"}}, \"required\": [\"room\", \"volume_pct\"]}}\n\n\nUSER: Way too loud in the kitchen, knock it down to 10.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_volume\", \"arguments\": {\"room\": \"kitchen\", \"volume_pct\": 10}}"
+  },
+  {
+    "utterance": "I'm going to bed, run bedtime scene.",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "bedtime"
+    },
+    "source": "barometech_sh_timers",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: I'm going to bed, run bedtime scene.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"bedtime\"}}"
+  },
+  {
+    "utterance": "Tune the living room to 2700K white.",
+    "gold_name": "set_light_temperature_k",
+    "gold_args": {
+      "room": "living room",
+      "kelvin": 2700
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_temperature_k\", \"description\": \"Smart home: set light temperature k\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"kelvin\": {\"type\": \"integer\", \"description\": \"The kelvin\"}}, \"required\": [\"room\", \"kelvin\"]}}\n\n\nUSER: Tune the living room to 2700K white.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_temperature_k\", \"arguments\": {\"room\": \"living room\", \"kelvin\": 2700}}"
+  },
+  {
+    "utterance": "Disarm the alarm.",
+    "gold_name": "disarm_alarm_system",
+    "gold_args": {},
+    "source": "barometech_sh_security",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"disarm_alarm_system\", \"description\": \"Smart home: disarm alarm system\", \"parameters\": {\"type\": \"object\", \"properties\": {}, \"required\": []}}\n\n\nUSER: Disarm the alarm.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"disarm_alarm_system\", \"arguments\": {}}"
+  },
+  {
+    "utterance": "kids room - 6000K please.",
+    "gold_name": "set_light_temperature_k",
+    "gold_args": {
+      "room": "kids room",
+      "kelvin": 6000
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_temperature_k\", \"description\": \"Smart home: set light temperature k\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"kelvin\": {\"type\": \"integer\", \"description\": \"The kelvin\"}}, \"required\": [\"room\", \"kelvin\"]}}\n\n\nUSER: kids room - 6000K please.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_temperature_k\", \"arguments\": {\"room\": \"kids room\", \"kelvin\": 6000}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "cancel_alarm",
+    "gold_args": {
+      "time": "17:15"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"cancel_alarm\", \"description\": \"Cancel an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"cancel_alarm\", \"arguments\": {\"time\": \"17:15\"}}"
+  },
+  {
+    "utterance": "Switch the dehumidifier off in the hallway.",
+    "gold_name": "toggle_dehumidifier",
+    "gold_args": {
+      "room": "hallway",
+      "state": "off"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"toggle_dehumidifier\", \"description\": \"Smart home: toggle dehumidifier\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"state\": {\"type\": \"string\", \"description\": \"The state\"}}, \"required\": [\"room\", \"state\"]}}\n\n\nUSER: Switch the dehumidifier off in the hallway.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"toggle_dehumidifier\", \"arguments\": {\"room\": \"hallway\", \"state\": \"off\"}}"
+  },
+  {
+    "utterance": "Vacuum the bathroom now.",
+    "gold_name": "vacuum_start",
+    "gold_args": {
+      "area": "bathroom"
+    },
+    "source": "barometech_sh_cleaning",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"vacuum_start\", \"description\": \"Start the robot vacuum cleaner\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name or 'everywhere'\"}}}\n\n\nUSER: Vacuum the bathroom now.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"vacuum_start\", \"arguments\": {\"area\": \"bathroom\"}}"
+  },
+  {
+    "utterance": "Deactivate the alarm.",
+    "gold_name": "disarm_alarm_system",
+    "gold_args": {},
+    "source": "barometech_sh_security",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"disarm_alarm_system\", \"description\": \"Smart home: disarm alarm system\", \"parameters\": {\"type\": \"object\", \"properties\": {}, \"required\": []}}\n\n\nUSER: Deactivate the alarm.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"disarm_alarm_system\", \"arguments\": {}}"
+  },
+  {
+    "utterance": "Could you check whether the side entrance is secured?",
+    "gold_name": "query_door_status",
+    "gold_args": {
+      "door": "side_door"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_door_status\", \"description\": \"Smart home: query door status\", \"parameters\": {\"type\": \"object\", \"properties\": {\"door\": {\"type\": \"string\", \"description\": \"The door\"}}, \"required\": [\"door\"]}}\n\n\nUSER: Could you check whether the side entrance is secured?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_door_status\", \"arguments\": {\"door\": \"side_door\"}}"
+  },
+  {
+    "utterance": "porch lights should be at 33% now.",
+    "gold_name": "dim_light",
+    "gold_args": {
+      "room": "porch",
+      "brightness_pct": 33
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"dim_light\", \"description\": \"Smart home: dim light\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"brightness_pct\": {\"type\": \"integer\", \"description\": \"The brightness pct\"}}, \"required\": [\"room\", \"brightness_pct\"]}}\n\n\nUSER: porch lights should be at 33% now.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"dim_light\", \"arguments\": {\"room\": \"porch\", \"brightness_pct\": 33}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "turn_on_light",
+    "gold_args": {
+      "room": "kitchen"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"turn_on_light\", \"description\": \"Turn on a light in a specified room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"turn_on_light\", \"arguments\": {\"room\": \"kitchen\"}}"
+  },
+  {
+    "utterance": "I'm not sure if I locked the back door — can you check?",
+    "gold_name": "query_door_status",
+    "gold_args": {
+      "door": "back door"
+    },
+    "source": "barometech_sh_security",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_door_status\", \"description\": \"Smart home: query door status\", \"parameters\": {\"type\": \"object\", \"properties\": {\"door\": {\"type\": \"string\", \"description\": \"The door\"}}, \"required\": [\"door\"]}}\n\n\nUSER: I'm not sure if I locked the back door — can you check?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_door_status\", \"arguments\": {\"door\": \"back door\"}}"
+  },
+  {
+    "utterance": "Blink the porch lights 2 times.",
+    "gold_name": "blink_light",
+    "gold_args": {
+      "room": "porch",
+      "times": 2
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"blink_light\", \"description\": \"Smart home: blink light\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"times\": {\"type\": \"integer\", \"description\": \"The times\"}}, \"required\": [\"room\"]}}\n\n\nUSER: Blink the porch lights 2 times.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"blink_light\", \"arguments\": {\"room\": \"porch\", \"times\": 2}}"
+  },
+  {
+    "utterance": "Target 45% humidity in the living room.",
+    "gold_name": "set_humidity_target",
+    "gold_args": {
+      "room": "living room",
+      "humidity_pct": 45
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_humidity_target\", \"description\": \"Smart home: set humidity target\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"humidity_pct\": {\"type\": \"integer\", \"description\": \"The humidity pct\"}}, \"required\": [\"room\", \"humidity_pct\"]}}\n\n\nUSER: Target 45% humidity in the living room.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_humidity_target\", \"arguments\": {\"room\": \"living room\", \"humidity_pct\": 45}}"
+  },
+  {
+    "utterance": "Lower the bedroom volume to 15.",
+    "gold_name": "set_volume",
+    "gold_args": {
+      "room": "bedroom",
+      "volume_pct": 15
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_volume\", \"description\": \"Smart home: set volume\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"volume_pct\": {\"type\": \"integer\", \"description\": \"The volume pct\"}}, \"required\": [\"room\", \"volume_pct\"]}}\n\n\nUSER: Lower the bedroom volume to 15.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_volume\", \"arguments\": {\"room\": \"bedroom\", \"volume_pct\": 15}}"
+  },
+  {
+    "utterance": "Adjust the blinds in the bedroom to 30%.",
+    "gold_name": "set_blinds_position",
+    "gold_args": {
+      "room": "bedroom",
+      "position": 30
+    },
+    "source": "barometech_sh_blinds",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_blinds_position\", \"description\": \"Smart home: set blinds position\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"position\": {\"type\": \"integer\", \"description\": \"The position\"}}, \"required\": [\"room\", \"position\"]}}\n\n\nUSER: Adjust the blinds in the bedroom to 30%.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_blinds_position\", \"arguments\": {\"room\": \"bedroom\", \"position\": 30}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "play_music",
+    "gold_args": {
+      "song": "классика",
+      "room": "кухня"
+    },
+    "source": "vh_ru",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"play_music\", \"description\": \"Play music in a room\", \"parameters\": {\"song\": {\"type\": \"string\", \"description\": \"Song or playlist name\"}, \"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"play_music\", \"arguments\": {\"song\": \"классика\", \"room\": \"кухня\"}}"
+  },
+  {
+    "utterance": "I left for work in a rush — pretty sure the big door to the yard wasn't latched.",
+    "gold_name": "query_door_status",
+    "gold_args": {
+      "door": "back_door"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_door_status\", \"description\": \"Smart home: query door status\", \"parameters\": {\"type\": \"object\", \"properties\": {\"door\": {\"type\": \"string\", \"description\": \"The door\"}}, \"required\": [\"door\"]}}\n\n\nUSER: I left for work in a rush — pretty sure the big door to the yard wasn't latched.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_door_status\", \"arguments\": {\"door\": \"back_door\"}}"
+  },
+  {
+    "utterance": "Hallway - lights on now.",
+    "gold_name": "turn_on_light",
+    "gold_args": {
+      "room": "hallway"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"turn_on_light\", \"description\": \"Turn on a light in a specified room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: Hallway - lights on now.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"turn_on_light\", \"arguments\": {\"room\": \"hallway\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "attic",
+      "temperature_c": 20
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"attic\", \"temperature_c\": 20}}"
+  },
+  {
+    "utterance": "Switch the dehumidifier on in the hallway.",
+    "gold_name": "toggle_dehumidifier",
+    "gold_args": {
+      "room": "hallway",
+      "state": "on"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"toggle_dehumidifier\", \"description\": \"Smart home: toggle dehumidifier\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"state\": {\"type\": \"string\", \"description\": \"The state\"}}, \"required\": [\"room\", \"state\"]}}\n\n\nUSER: Switch the dehumidifier on in the hallway.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"toggle_dehumidifier\", \"arguments\": {\"room\": \"hallway\", \"state\": \"on\"}}"
+  },
+  {
+    "utterance": "basement white at 6000 kelvin.",
+    "gold_name": "set_light_temperature_k",
+    "gold_args": {
+      "room": "basement",
+      "kelvin": 6000
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_temperature_k\", \"description\": \"Smart home: set light temperature k\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"kelvin\": {\"type\": \"integer\", \"description\": \"The kelvin\"}}, \"required\": [\"room\", \"kelvin\"]}}\n\n\nUSER: basement white at 6000 kelvin.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_temperature_k\", \"arguments\": {\"room\": \"basement\", \"kelvin\": 6000}}"
+  },
+  {
+    "utterance": "Pause music in the bedroom.",
+    "gold_name": "pause_music",
+    "gold_args": {
+      "room": "bedroom"
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"pause_music\", \"description\": \"Smart home: pause music\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}}, \"required\": [\"room\"]}}\n\n\nUSER: Pause music in the bedroom.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"pause_music\", \"arguments\": {\"room\": \"bedroom\"}}"
+  },
+  {
+    "utterance": "Set the bedroom TV to CNN.",
+    "gold_name": "set_tv_channel",
+    "gold_args": {
+      "room": "bedroom",
+      "channel": "CNN"
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_tv_channel\", \"description\": \"Smart home: set tv channel\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"channel\": {\"type\": \"string\", \"description\": \"The channel\"}}, \"required\": [\"room\", \"channel\"]}}\n\n\nUSER: Set the bedroom TV to CNN.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_tv_channel\", \"arguments\": {\"room\": \"bedroom\", \"channel\": \"CNN\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "вечеринка"
+    },
+    "source": "vh_ru",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"вечеринка\"}}"
+  },
+  {
+    "utterance": "Play NPR in the living room.",
+    "gold_name": "play_radio_station",
+    "gold_args": {
+      "station": "NPR",
+      "room": "living room"
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"play_radio_station\", \"description\": \"Smart home: play radio station\", \"parameters\": {\"type\": \"object\", \"properties\": {\"station\": {\"type\": \"string\", \"description\": \"The station\"}, \"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"volume_pct\": {\"type\": \"integer\", \"description\": \"The volume pct\"}}, \"required\": [\"station\", \"room\"]}}\n\n\nUSER: Play NPR in the living room.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"play_radio_station\", \"arguments\": {\"station\": \"NPR\", \"room\": \"living room\"}}"
+  },
+  {
+    "utterance": "Pull the sunroom blinds up.",
+    "gold_name": "raise_blinds",
+    "gold_args": {
+      "room": "sunroom"
+    },
+    "source": "barometech_sh_blinds",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"raise_blinds\", \"description\": \"Smart home: raise blinds\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}}, \"required\": [\"room\"]}}\n\n\nUSER: Pull the sunroom blinds up.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"raise_blinds\", \"arguments\": {\"room\": \"sunroom\"}}"
+  },
+  {
+    "utterance": "Status of front door.",
+    "gold_name": "query_door_status",
+    "gold_args": {
+      "door": "front_door"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_door_status\", \"description\": \"Smart home: query door status\", \"parameters\": {\"type\": \"object\", \"properties\": {\"door\": {\"type\": \"string\", \"description\": \"The door\"}}, \"required\": [\"door\"]}}\n\n\nUSER: Status of front door.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_door_status\", \"arguments\": {\"door\": \"front_door\"}}"
+  },
+  {
+    "utterance": "Air quality kitchen.",
+    "gold_name": "query_air_quality",
+    "gold_args": {
+      "room": "kitchen"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_air_quality\", \"description\": \"Smart home: query air quality\", \"parameters\": {\"type\": \"object\", \"properties\": {\"area\": {\"type\": \"string\", \"description\": \"The area\"}}, \"required\": []}}\n\n\nUSER: Air quality kitchen.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_air_quality\", \"arguments\": {\"room\": \"kitchen\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "garage",
+      "temperature_c": 21
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"garage\", \"temperature_c\": 21}}"
+  },
+  {
+    "utterance": "Check VOC and particulate levels in the office.",
+    "gold_name": "query_air_quality",
+    "gold_args": {
+      "room": "office"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_air_quality\", \"description\": \"Smart home: query air quality\", \"parameters\": {\"type\": \"object\", \"properties\": {\"area\": {\"type\": \"string\", \"description\": \"The area\"}}, \"required\": []}}\n\n\nUSER: Check VOC and particulate levels in the office.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_air_quality\", \"arguments\": {\"room\": \"office\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "guest room",
+      "temperature_c": 27
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"guest room\", \"temperature_c\": 27}}"
+  },
+  {
+    "utterance": "It's stuffy in the master bedroom, target humidity 40%.",
+    "gold_name": "set_humidity_target",
+    "gold_args": {
+      "room": "master bedroom",
+      "humidity_pct": 40
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_humidity_target\", \"description\": \"Smart home: set humidity target\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"humidity_pct\": {\"type\": \"integer\", \"description\": \"The humidity pct\"}}, \"required\": [\"room\", \"humidity_pct\"]}}\n\n\nUSER: It's stuffy in the master bedroom, target humidity 40%.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_humidity_target\", \"arguments\": {\"room\": \"master bedroom\", \"humidity_pct\": 40}}"
+  },
+  {
+    "utterance": "Please switch the porch router off.",
+    "gold_name": "toggle_outlet",
+    "gold_args": {
+      "room": "porch",
+      "outlet_name": "router",
+      "state": "off"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"toggle_outlet\", \"description\": \"Smart home: toggle outlet\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"outlet_name\": {\"type\": \"string\", \"description\": \"The outlet name\"}, \"state\": {\"type\": \"string\", \"description\": \"The state\"}}, \"required\": [\"room\", \"outlet_name\", \"state\"]}}\n\n\nUSER: Please switch the porch router off.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"toggle_outlet\", \"arguments\": {\"room\": \"porch\", \"outlet_name\": \"router\", \"state\": \"off\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "vacuum_start",
+    "gold_args": {
+      "room": "garage"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"vacuum_start\", \"description\": \"Start the robot vacuum cleaner\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name or 'everywhere'\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"vacuum_start\", \"arguments\": {\"room\": \"garage\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "cancel_alarm",
+    "gold_args": {
+      "time": "19:30"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"cancel_alarm\", \"description\": \"Cancel an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"cancel_alarm\", \"arguments\": {\"time\": \"19:30\"}}"
+  },
+  {
+    "utterance": "Change the kitchen lights to orange.",
+    "gold_name": "set_light_color",
+    "gold_args": {
+      "room": "kitchen",
+      "color": "orange"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_color\", \"description\": \"Smart home: set light color\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"color\": {\"type\": \"string\", \"description\": \"The color\"}, \"brightness_pct\": {\"type\": \"integer\", \"description\": \"The brightness pct\"}}, \"required\": [\"room\", \"color\"]}}\n\n\nUSER: Change the kitchen lights to orange.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_color\", \"arguments\": {\"room\": \"kitchen\", \"color\": \"orange\"}}"
+  },
+  {
+    "utterance": "Set gym volume to 80 percent.",
+    "gold_name": "set_volume",
+    "gold_args": {
+      "room": "basement gym",
+      "volume_pct": 80
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_volume\", \"description\": \"Smart home: set volume\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"volume_pct\": {\"type\": \"integer\", \"description\": \"The volume pct\"}}, \"required\": [\"room\", \"volume_pct\"]}}\n\n\nUSER: Set gym volume to 80 percent.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_volume\", \"arguments\": {\"room\": \"basement gym\", \"volume_pct\": 80}}"
+  },
+  {
+    "utterance": "Quiet please — set master bedroom fan to high.",
+    "gold_name": "set_fan_speed",
+    "gold_args": {
+      "room": "master bedroom",
+      "speed": "high"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_fan_speed\", \"description\": \"Smart home: set fan speed\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"speed\": {\"type\": \"string\", \"description\": \"The speed\"}}, \"required\": [\"room\", \"speed\"]}}\n\n\nUSER: Quiet please — set master bedroom fan to high.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_fan_speed\", \"arguments\": {\"room\": \"master bedroom\", \"speed\": \"high\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "cancel_alarm",
+    "gold_args": {
+      "time": "07:45"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"cancel_alarm\", \"description\": \"Cancel an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"cancel_alarm\", \"arguments\": {\"time\": \"07:45\"}}"
+  },
+  {
+    "utterance": "Turn the living room down a bit, set it to 25.",
+    "gold_name": "set_volume",
+    "gold_args": {
+      "room": "living room",
+      "volume_pct": 25
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_volume\", \"description\": \"Smart home: set volume\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"volume_pct\": {\"type\": \"integer\", \"description\": \"The volume pct\"}}, \"required\": [\"room\", \"volume_pct\"]}}\n\n\nUSER: Turn the living room down a bit, set it to 25.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_volume\", \"arguments\": {\"room\": \"living room\", \"volume_pct\": 25}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "query_temperature",
+    "gold_args": {
+      "room": "коридор"
+    },
+    "source": "vh_ru",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_temperature\", \"description\": \"Get the current temperature of a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_temperature\", \"arguments\": {\"room\": \"коридор\"}}"
+  },
+  {
+    "utterance": "Move the bedroom blinds to 20% open.",
+    "gold_name": "set_blinds_position",
+    "gold_args": {
+      "room": "bedroom",
+      "position": 20
+    },
+    "source": "barometech_sh_blinds",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_blinds_position\", \"description\": \"Smart home: set blinds position\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"position\": {\"type\": \"integer\", \"description\": \"The position\"}}, \"required\": [\"room\", \"position\"]}}\n\n\nUSER: Move the bedroom blinds to 20% open.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_blinds_position\", \"arguments\": {\"room\": \"bedroom\", \"position\": 20}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_alarm",
+    "gold_args": {
+      "time": "22:15"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_alarm\", \"description\": \"Set an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"22:15\"}}"
+  },
+  {
+    "utterance": "Start the living room humidifier.",
+    "gold_name": "toggle_humidifier",
+    "gold_args": {
+      "room": "living room",
+      "state": "on"
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"toggle_humidifier\", \"description\": \"Smart home: toggle humidifier\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"state\": {\"type\": \"string\", \"description\": \"The state\"}}, \"required\": [\"room\", \"state\"]}}\n\n\nUSER: Start the living room humidifier.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"toggle_humidifier\", \"arguments\": {\"room\": \"living room\", \"state\": \"on\"}}"
+  },
+  {
+    "utterance": "Painters will arrive in five, give them entry through the rear.",
+    "gold_name": "unlock_door",
+    "gold_args": {
+      "door": "back door"
+    },
+    "source": "barometech_sh_security",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"unlock_door\", \"description\": \"Unlock a door\", \"parameters\": {\"door\": {\"type\": \"string\", \"description\": \"The door name\"}}}\n\n\nUSER: Painters will arrive in five, give them entry through the rear.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"unlock_door\", \"arguments\": {\"door\": \"back door\"}}"
+  },
+  {
+    "utterance": "Stop bedroom music now.",
+    "gold_name": "stop_music",
+    "gold_args": {
+      "room": "bedroom"
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"stop_music\", \"description\": \"Stop playing music in a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: Stop bedroom music now.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"stop_music\", \"arguments\": {\"room\": \"bedroom\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_alarm",
+    "gold_args": {
+      "time": "22:00"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_alarm\", \"description\": \"Set an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"22:00\"}}"
+  },
+  {
+    "utterance": "Bump the office up to 45.",
+    "gold_name": "set_volume",
+    "gold_args": {
+      "room": "office",
+      "volume_pct": 45
+    },
+    "source": "barometech_sh_media",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_volume\", \"description\": \"Smart home: set volume\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"volume_pct\": {\"type\": \"integer\", \"description\": \"The volume pct\"}}, \"required\": [\"room\", \"volume_pct\"]}}\n\n\nUSER: Bump the office up to 45.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_volume\", \"arguments\": {\"room\": \"office\", \"volume_pct\": 45}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "query_temperature",
+    "gold_args": {
+      "room": "attic"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_temperature\", \"description\": \"Get the current temperature of a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_temperature\", \"arguments\": {\"room\": \"attic\"}}"
+  },
+  {
+    "utterance": "What's the lock state of the basement door?",
+    "gold_name": "query_door_status",
+    "gold_args": {
+      "door": "basement_door"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_door_status\", \"description\": \"Smart home: query door status\", \"parameters\": {\"type\": \"object\", \"properties\": {\"door\": {\"type\": \"string\", \"description\": \"The door\"}}, \"required\": [\"door\"]}}\n\n\nUSER: What's the lock state of the basement door?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_door_status\", \"arguments\": {\"door\": \"basement_door\"}}"
+  },
+  {
+    "utterance": "Kids are getting home from school, disarm the system.",
+    "gold_name": "disarm_alarm_system",
+    "gold_args": {},
+    "source": "barometech_sh_security",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"disarm_alarm_system\", \"description\": \"Smart home: disarm alarm system\", \"parameters\": {\"type\": \"object\", \"properties\": {}, \"required\": []}}\n\n\nUSER: Kids are getting home from school, disarm the system.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"disarm_alarm_system\", \"arguments\": {}}"
+  },
+  {
+    "utterance": "Turn on sunrise mode for the nursery.",
+    "gold_name": "set_light_scene",
+    "gold_args": {
+      "room": "nursery",
+      "scene": "sunrise"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_scene\", \"description\": \"Smart home: set light scene\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"scene\": {\"type\": \"string\", \"description\": \"The scene\"}}, \"required\": [\"room\", \"scene\"]}}\n\n\nUSER: Turn on sunrise mode for the nursery.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_scene\", \"arguments\": {\"room\": \"nursery\", \"scene\": \"sunrise\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "query_temperature",
+    "gold_args": {
+      "room": "спальня"
+    },
+    "source": "vh_ru",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_temperature\", \"description\": \"Get the current temperature of a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_temperature\", \"arguments\": {\"room\": \"спальня\"}}"
+  },
+  {
+    "utterance": "What does the thermostat in the hallway say?",
+    "gold_name": "query_temperature",
+    "gold_args": {
+      "room": "hallway"
+    },
+    "source": "barometech_sh_sensors",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_temperature\", \"description\": \"Get the current temperature of a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: What does the thermostat in the hallway say?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_temperature\", \"arguments\": {\"room\": \"hallway\"}}"
+  },
+  {
+    "utterance": "Help, intruder — hit the panic button.",
+    "gold_name": "trigger_panic_alarm",
+    "gold_args": {},
+    "source": "barometech_sh_security",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"trigger_panic_alarm\", \"description\": \"Smart home: trigger panic alarm\", \"parameters\": {\"type\": \"object\", \"properties\": {}, \"required\": []}}\n\n\nUSER: Help, intruder — hit the panic button.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"trigger_panic_alarm\", \"arguments\": {}}"
+  },
+  {
+    "utterance": "Cancel the cleaning, halt the vacuum right now.",
+    "gold_name": "stop_vacuum",
+    "gold_args": {},
+    "source": "barometech_sh_cleaning",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"stop_vacuum\", \"description\": \"Smart home: stop vacuum\", \"parameters\": {\"type\": \"object\", \"properties\": {}, \"required\": []}}\n\n\nUSER: Cancel the cleaning, halt the vacuum right now.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"stop_vacuum\", \"arguments\": {}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "vacuum_start",
+    "gold_args": {
+      "room": "гараж"
+    },
+    "source": "vh_ru",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"vacuum_start\", \"description\": \"Start the robot vacuum cleaner\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name or 'everywhere'\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"vacuum_start\", \"arguments\": {\"room\": \"гараж\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "away"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"away\"}}"
+  },
+  {
+    "utterance": "Make the sunroom 68F please.",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "sunroom",
+      "temperature_c": 20.0
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: Make the sunroom 68F please.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"sunroom\", \"temperature_c\": 20.0}}"
+  },
+  {
+    "utterance": "Roll up the blinds in the kitchen.",
+    "gold_name": "raise_blinds",
+    "gold_args": {
+      "room": "kitchen"
+    },
+    "source": "barometech_sh_blinds",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"raise_blinds\", \"description\": \"Smart home: raise blinds\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}}, \"required\": [\"room\"]}}\n\n\nUSER: Roll up the blinds in the kitchen.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"raise_blinds\", \"arguments\": {\"room\": \"kitchen\"}}"
+  },
+  {
+    "utterance": "Flash the kitchen 4 times.",
+    "gold_name": "blink_light",
+    "gold_args": {
+      "room": "kitchen",
+      "times": 4
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"blink_light\", \"description\": \"Smart home: blink light\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"times\": {\"type\": \"integer\", \"description\": \"The times\"}}, \"required\": [\"room\"]}}\n\n\nUSER: Flash the kitchen 4 times.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"blink_light\", \"arguments\": {\"room\": \"kitchen\", \"times\": 4}}"
+  },
+  {
+    "utterance": "Is the air okay in the kids room? I want to check.",
+    "gold_name": "query_air_quality",
+    "gold_args": {
+      "area": "kids room"
+    },
+    "source": "barometech_sh_cleaning",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_air_quality\", \"description\": \"Smart home: query air quality\", \"parameters\": {\"type\": \"object\", \"properties\": {\"area\": {\"type\": \"string\", \"description\": \"The area\"}}, \"required\": []}}\n\n\nUSER: Is the air okay in the kids room? I want to check.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_air_quality\", \"arguments\": {\"area\": \"kids room\"}}"
+  },
+  {
+    "utterance": "Toggle the basement TV off.",
+    "gold_name": "toggle_outlet",
+    "gold_args": {
+      "room": "basement",
+      "outlet_name": "TV",
+      "state": "off"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"toggle_outlet\", \"description\": \"Smart home: toggle outlet\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"outlet_name\": {\"type\": \"string\", \"description\": \"The outlet name\"}, \"state\": {\"type\": \"string\", \"description\": \"The state\"}}, \"required\": [\"room\", \"outlet_name\", \"state\"]}}\n\n\nUSER: Toggle the basement TV off.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"toggle_outlet\", \"arguments\": {\"room\": \"basement\", \"outlet_name\": \"TV\", \"state\": \"off\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "garage",
+      "temperature_c": 26
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"garage\", \"temperature_c\": 26}}"
+  },
+  {
+    "utterance": "Activate bedtime mode.",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "bedtime"
+    },
+    "source": "barometech_sh_timers",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: Activate bedtime mode.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"bedtime\"}}"
+  },
+  {
+    "utterance": "Cozy vibes in the kids room, thanks.",
+    "gold_name": "set_light_color",
+    "gold_args": {
+      "room": "kids room",
+      "color": "warm white"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_light_color\", \"description\": \"Smart home: set light color\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"color\": {\"type\": \"string\", \"description\": \"The color\"}, \"brightness_pct\": {\"type\": \"integer\", \"description\": \"The brightness pct\"}}, \"required\": [\"room\", \"color\"]}}\n\n\nUSER: Cozy vibes in the kids room, thanks.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_light_color\", \"arguments\": {\"room\": \"kids room\", \"color\": \"warm white\"}}"
+  },
+  {
+    "utterance": "Flash the kids room 4 times.",
+    "gold_name": "blink_light",
+    "gold_args": {
+      "room": "kids room",
+      "times": 4
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"blink_light\", \"description\": \"Smart home: blink light\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"times\": {\"type\": \"integer\", \"description\": \"The times\"}}, \"required\": [\"room\"]}}\n\n\nUSER: Flash the kids room 4 times.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"blink_light\", \"arguments\": {\"room\": \"kids room\", \"times\": 4}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_alarm",
+    "gold_args": {
+      "time": "21:45"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_alarm\", \"description\": \"Set an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"21:45\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "stop_music",
+    "gold_args": {
+      "room": "attic"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"stop_music\", \"description\": \"Stop playing music in a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"stop_music\", \"arguments\": {\"room\": \"attic\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "cancel_alarm",
+    "gold_args": {
+      "time": "14:30"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"cancel_alarm\", \"description\": \"Cancel an alarm\", \"parameters\": {\"time\": {\"type\": \"string\", \"description\": \"Alarm time in HH:MM format\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"cancel_alarm\", \"arguments\": {\"time\": \"14:30\"}}"
+  },
+  {
+    "utterance": "Smells smoky in here, what is the air quality in the living room?",
+    "gold_name": "query_air_quality",
+    "gold_args": {
+      "area": "living room"
+    },
+    "source": "barometech_sh_cleaning",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"query_air_quality\", \"description\": \"Smart home: query air quality\", \"parameters\": {\"type\": \"object\", \"properties\": {\"area\": {\"type\": \"string\", \"description\": \"The area\"}}, \"required\": []}}\n\n\nUSER: Smells smoky in here, what is the air quality in the living room?\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"query_air_quality\", \"arguments\": {\"area\": \"living room\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "basement",
+      "temperature_c": 27
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"basement\", \"temperature_c\": 27}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "play_music",
+    "gold_args": {
+      "song": "chill beats",
+      "room": "basement"
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"play_music\", \"description\": \"Play music in a room\", \"parameters\": {\"song\": {\"type\": \"string\", \"description\": \"Song or playlist name\"}, \"room\": {\"type\": \"string\", \"description\": \"The room name\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"play_music\", \"arguments\": {\"song\": \"chill beats\", \"room\": \"basement\"}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "activate_scene",
+    "gold_args": {
+      "scene": "отъезд"
+    },
+    "source": "vh_ru",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"activate_scene\", \"description\": \"Activate a smart home scene\", \"parameters\": {\"scene\": {\"type\": \"string\", \"description\": \"Scene name e.g. movie_night, morning, away\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"activate_scene\", \"arguments\": {\"scene\": \"отъезд\"}}"
+  },
+  {
+    "utterance": "Adjust master bedroom motion detection to low.",
+    "gold_name": "set_motion_sensitivity",
+    "gold_args": {
+      "room": "master bedroom",
+      "level": "low"
+    },
+    "source": "barometech_sh_lighting",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_motion_sensitivity\", \"description\": \"Smart home: set motion sensitivity\", \"parameters\": {\"type\": \"object\", \"properties\": {\"room\": {\"type\": \"string\", \"description\": \"The room\"}, \"level\": {\"type\": \"string\", \"description\": \"The level\"}}, \"required\": [\"room\", \"level\"]}}\n\n\nUSER: Adjust master bedroom motion detection to low.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_motion_sensitivity\", \"arguments\": {\"room\": \"master bedroom\", \"level\": \"low\"}}"
+  },
+  {
+    "utterance": "Make the bathroom 19 degrees.",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "bathroom",
+      "temperature_c": 19
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: Make the bathroom 19 degrees.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"bathroom\", \"temperature_c\": 19}}"
+  },
+  {
+    "utterance": "70F in the master bedroom.",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "master bedroom",
+      "temperature_c": 21.1
+    },
+    "source": "barometech_sh_climate",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: 70F in the master bedroom.\n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"master bedroom\", \"temperature_c\": 21.1}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "basement",
+      "temperature_c": 17
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"basement\", \"temperature_c\": 17}}"
+  },
+  {
+    "utterance": "",
+    "gold_name": "set_temperature",
+    "gold_args": {
+      "room": "nursery",
+      "temperature_c": 16
+    },
+    "source": "vh_en",
+    "prompt": "SYSTEM: You are a helpful assistant with access to the following functions. Use them if required -\n{\"name\": \"set_temperature\", \"description\": \"Set the thermostat temperature for a room\", \"parameters\": {\"room\": {\"type\": \"string\", \"description\": \"The room name\"}, \"temperature_c\": {\"type\": \"integer\", \"description\": \"Target temperature in Celsius\"}}}\n\n\nUSER: \n\n\nASSISTANT: <functioncall> ",
+    "gold": "{\"name\": \"set_temperature\", \"arguments\": {\"room\": \"nursery\", \"temperature_c\": 16}}"
+  }
+]

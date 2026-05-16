@@ -1,4 +1,4 @@
-"""Vector Home — full pipeline: utterance → router → parser → HA bridge.
+"""Vector Home Pipeline v2 — utterance → router → parser → HA bridge.
 
 Usage:
     python -m src.pipeline "turn on the lights in the living room"
@@ -88,7 +88,7 @@ def process(utterance: str, router: HomeRouter, parser: HomeParser,
 
 
 def main():
-    argp = argparse.ArgumentParser(description="Vector Home pipeline")
+    argp = argparse.ArgumentParser(description="Vector Home Pipeline v2")
     argp.add_argument("command", nargs="*", help="Command to process")
     argp.add_argument("--interactive", "-i", action="store_true", help="Interactive mode")
     argp.add_argument("--quiet", "-q", action="store_true", help="Minimal output (JSON)")
@@ -96,20 +96,22 @@ def main():
     argp.add_argument("--live", action="store_true", help="Actually call HA (overrides dry-run)")
     argp.add_argument("--ha-url", default=os.environ.get("HA_URL", "http://homeassistant.local:8123"))
     argp.add_argument("--ha-token", default=os.environ.get("HA_TOKEN", ""))
+    argp.add_argument("--weights", default=None, help="Path to GPT-2 weights file")
+    argp.add_argument("--tools-spec", default=None, help="Path to tools_spec_v2.json")
     args = argp.parse_args()
 
     verbose = not args.quiet
     dry_run = not args.live
 
     if verbose:
-        print("Vector Home — loading...")
+        print("Vector Home v2 — loading...")
 
     router = HomeRouter()
-    parser = HomeParser(verbose=verbose)
+    parser = HomeParser(weights_path=args.weights, tools_spec_path=args.tools_spec, verbose=verbose)
     ha = HABridge(url=args.ha_url, token=args.ha_token, dry_run=dry_run)
 
     if verbose:
-        print(f"Ready. {'[DRY RUN]' if dry_run else '[LIVE]'}\n")
+        print(f"Ready ({len(router.ALL_TOOLS)} tools). {'[DRY RUN]' if dry_run else '[LIVE]'}\n")
 
     if args.interactive:
         print("Enter commands (Ctrl+D to exit):")
@@ -147,7 +149,6 @@ def main():
             print()
 
         precision = correct / total * 100 if total else 0
-        recall = correct / total * 100 if total else 0
         print(f"\n{'='*40}")
         print(f"Result: {correct}/{total} = {precision:.0f}%")
         print(f"Stats: {router.stats}")

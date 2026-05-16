@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vector Home v2</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🏠 Vector Home <small>v2</small></h1>
+    <div id="status-bar">
+      <span id="ws-status" class="dot disconnected" title="WebSocket"></span>
+      <span id="ha-status" class="dot disconnected" title="Home Assistant"></span>
+      <span id="tools-count">53 tools</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Command Input -->
+    <section id="command-section">
+      <div class="input-group">
+        <input type="text" id="cmd-input" placeholder="Введите команду... / Type a command..."
+               autocomplete="off" autofocus>
+        <button id="cmd-send" title="Отправить">▶</button>
+        <button id="cmd-voice" title="Голосовой ввод" class="voice-btn">🎤</button>
+      </div>
+      <div id="cmd-result" class="result-card hidden"></div>
+    </section>
+
+    <!-- Device Groups -->
+    <section id="devices-section">
+      <h2>Устройства / Devices</h2>
+      <div class="group-tabs">
+        <button class="tab active" data-group="light">💡 Свет</button>
+        <button class="tab" data-group="climate">🌡️ Климат</button>
+        <button class="tab" data-group="covers">🪟 Шторы</button>
+        <button class="tab" data-group="vacuum">🤖 Пылесос</button>
+        <button class="tab" data-group="security">🔒 Безопасность</button>
+        <button class="tab" data-group="media">🎵 Медиа</button>
+        <button class="tab" data-group="garden">🌿 Сад</button>
+        <button class="tab" data-group="other">⚡ Другое</button>
+      </div>
+      <div id="devices-grid" class="cards-grid"></div>
+    </section>
+
+    <!-- History -->
+    <section id="history-section">
+      <h2>История / History <button id="clear-history" class="small-btn">🗑️</button></h2>
+      <div id="history-list" class="history-list">
+        <p class="empty">Нет команд</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Vector Home v2 · 53 tools · <span id="connection-info">Disconnected</span></small>
+  </footer>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

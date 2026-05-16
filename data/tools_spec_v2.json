@@ -1,0 +1,872 @@
+{
+  "tools": [
+    {
+      "name": "turn_on_light",
+      "description": "Turn on a light in a specified room",
+      "parameters": {
+        "room": {
+          "type": "string",
+          "description": "The room name"
+        }
+      }
+    },
+    {
+      "name": "turn_off_light",
+      "description": "Turn off a light in a specified room",
+      "parameters": {
+        "room": {
+          "type": "string",
+          "description": "The room name"
+        }
+      }
+    },
+    {
+      "name": "set_temperature",
+      "description": "Set the thermostat temperature for a room",
+      "parameters": {
+        "room": {
+          "type": "string",
+          "description": "The room name"
+        },
+        "temperature_c": {
+          "type": "integer",
+          "description": "Target temperature in Celsius"
+        }
+      }
+    },
+    {
+      "name": "query_temperature",
+      "description": "Get the current temperature of a room",
+      "parameters": {
+        "room": {
+          "type": "string",
+          "description": "The room name"
+        }
+      }
+    },
+    {
+      "name": "lock_door",
+      "description": "Lock a door",
+      "parameters": {
+        "door": {
+          "type": "string",
+          "description": "The door name"
+        }
+      }
+    },
+    {
+      "name": "unlock_door",
+      "description": "Unlock a door",
+      "parameters": {
+        "door": {
+          "type": "string",
+          "description": "The door name"
+        }
+      }
+    },
+    {
+      "name": "play_music",
+      "description": "Play music in a room",
+      "parameters": {
+        "song": {
+          "type": "string",
+          "description": "Song or playlist name"
+        },
+        "room": {
+          "type": "string",
+          "description": "The room name"
+        }
+      }
+    },
+    {
+      "name": "stop_music",
+      "description": "Stop playing music in a room",
+      "parameters": {
+        "room": {
+          "type": "string",
+          "description": "The room name"
+        }
+      }
+    },
+    {
+      "name": "set_alarm",
+      "description": "Set an alarm",
+      "parameters": {
+        "time": {
+          "type": "string",
+          "description": "Alarm time in HH:MM format"
+        }
+      }
+    },
+    {
+      "name": "cancel_alarm",
+      "description": "Cancel an alarm",
+      "parameters": {
+        "time": {
+          "type": "string",
+          "description": "Alarm time in HH:MM format"
+        }
+      }
+    },
+    {
+      "name": "activate_scene",
+      "description": "Activate a smart home scene",
+      "parameters": {
+        "scene": {
+          "type": "string",
+          "description": "Scene name e.g. movie_night, morning, away"
+        }
+      }
+    },
+    {
+      "name": "vacuum_start",
+      "description": "Start the robot vacuum cleaner",
+      "parameters": {
+        "room": {
+          "type": "string",
+          "description": "The room name or 'everywhere'"
+        }
+      }
+    },
+    {
+      "name": "arm_alarm_system",
+      "description": "Smart home: arm alarm system",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "description": "The mode"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      }
+    },
+    {
+      "name": "blink_light",
+      "description": "Smart home: blink light",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "times": {
+            "type": "integer",
+            "description": "The times"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "close_curtains",
+      "description": "Smart home: close curtains",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "dim_light",
+      "description": "Smart home: dim light",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "brightness_pct": {
+            "type": "integer",
+            "description": "The brightness pct"
+          }
+        },
+        "required": [
+          "room",
+          "brightness_pct"
+        ]
+      }
+    },
+    {
+      "name": "disarm_alarm_system",
+      "description": "Smart home: disarm alarm system",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "dock_vacuum",
+      "description": "Smart home: dock vacuum",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "lower_blinds",
+      "description": "Smart home: lower blinds",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "mute_audio",
+      "description": "Smart home: mute audio",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "open_curtains",
+      "description": "Smart home: open curtains",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "pause_music",
+      "description": "Smart home: pause music",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "play_radio_station",
+      "description": "Smart home: play radio station",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "station": {
+            "type": "string",
+            "description": "The station"
+          },
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "volume_pct": {
+            "type": "integer",
+            "description": "The volume pct"
+          }
+        },
+        "required": [
+          "station",
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "query_air_quality",
+      "description": "Smart home: query air quality",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "area": {
+            "type": "string",
+            "description": "The area"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "query_alarm_status",
+      "description": "Smart home: query alarm status",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "query_door_status",
+      "description": "Smart home: query door status",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "door": {
+            "type": "string",
+            "description": "The door"
+          }
+        },
+        "required": [
+          "door"
+        ]
+      }
+    },
+    {
+      "name": "query_humidity",
+      "description": "Smart home: query humidity",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "query_light_state",
+      "description": "Smart home: query light state",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "query_soil_moisture",
+      "description": "Smart home: query soil moisture",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "zone": {
+            "type": "string",
+            "description": "The zone"
+          }
+        },
+        "required": [
+          "zone"
+        ]
+      }
+    },
+    {
+      "name": "raise_blinds",
+      "description": "Smart home: raise blinds",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "set_ac_mode",
+      "description": "Smart home: set ac mode",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "mode": {
+            "type": "string",
+            "description": "The mode"
+          }
+        },
+        "required": [
+          "room",
+          "mode"
+        ]
+      }
+    },
+    {
+      "name": "set_blinds_angle",
+      "description": "Smart home: set blinds angle",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "angle": {
+            "type": "integer",
+            "description": "The angle"
+          }
+        },
+        "required": [
+          "room",
+          "angle"
+        ]
+      }
+    },
+    {
+      "name": "set_blinds_position",
+      "description": "Smart home: set blinds position",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "position": {
+            "type": "integer",
+            "description": "The position"
+          }
+        },
+        "required": [
+          "room",
+          "position"
+        ]
+      }
+    },
+    {
+      "name": "set_fan_speed",
+      "description": "Smart home: set fan speed",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "speed": {
+            "type": "string",
+            "description": "The speed"
+          }
+        },
+        "required": [
+          "room",
+          "speed"
+        ]
+      }
+    },
+    {
+      "name": "set_humidity_target",
+      "description": "Smart home: set humidity target",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "humidity_pct": {
+            "type": "integer",
+            "description": "The humidity pct"
+          }
+        },
+        "required": [
+          "room",
+          "humidity_pct"
+        ]
+      }
+    },
+    {
+      "name": "set_light_color",
+      "description": "Smart home: set light color",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "color": {
+            "type": "string",
+            "description": "The color"
+          },
+          "brightness_pct": {
+            "type": "integer",
+            "description": "The brightness pct"
+          }
+        },
+        "required": [
+          "room",
+          "color"
+        ]
+      }
+    },
+    {
+      "name": "set_light_scene",
+      "description": "Smart home: set light scene",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "scene": {
+            "type": "string",
+            "description": "The scene"
+          }
+        },
+        "required": [
+          "room",
+          "scene"
+        ]
+      }
+    },
+    {
+      "name": "set_light_temperature_k",
+      "description": "Smart home: set light temperature k",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "kelvin": {
+            "type": "integer",
+            "description": "The kelvin"
+          }
+        },
+        "required": [
+          "room",
+          "kelvin"
+        ]
+      }
+    },
+    {
+      "name": "set_motion_sensitivity",
+      "description": "Smart home: set motion sensitivity",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "level": {
+            "type": "string",
+            "description": "The level"
+          }
+        },
+        "required": [
+          "room",
+          "level"
+        ]
+      }
+    },
+    {
+      "name": "set_thermostat",
+      "description": "Smart home: set thermostat",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "temperature_c": {
+            "type": "number",
+            "description": "The temperature c"
+          },
+          "mode": {
+            "type": "string",
+            "description": "The mode"
+          }
+        },
+        "required": [
+          "room",
+          "temperature_c"
+        ]
+      }
+    },
+    {
+      "name": "set_tv_channel",
+      "description": "Smart home: set tv channel",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "channel": {
+            "type": "string",
+            "description": "The channel"
+          }
+        },
+        "required": [
+          "room",
+          "channel"
+        ]
+      }
+    },
+    {
+      "name": "set_tv_volume",
+      "description": "Smart home: set tv volume",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "volume_pct": {
+            "type": "integer",
+            "description": "The volume pct"
+          }
+        },
+        "required": [
+          "room",
+          "volume_pct"
+        ]
+      }
+    },
+    {
+      "name": "set_volume",
+      "description": "Smart home: set volume",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "volume_pct": {
+            "type": "integer",
+            "description": "The volume pct"
+          }
+        },
+        "required": [
+          "room",
+          "volume_pct"
+        ]
+      }
+    },
+    {
+      "name": "start_irrigation_zone",
+      "description": "Smart home: start irrigation zone",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "zone": {
+            "type": "string",
+            "description": "The zone"
+          },
+          "duration_min": {
+            "type": "integer",
+            "description": "The duration min"
+          }
+        },
+        "required": [
+          "zone"
+        ]
+      }
+    },
+    {
+      "name": "start_vacuum",
+      "description": "Smart home: start vacuum",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "area": {
+            "type": "string",
+            "description": "The area"
+          },
+          "intensity": {
+            "type": "string",
+            "description": "The intensity"
+          }
+        },
+        "required": [
+          "area"
+        ]
+      }
+    },
+    {
+      "name": "stop_irrigation_zone",
+      "description": "Smart home: stop irrigation zone",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "zone": {
+            "type": "string",
+            "description": "The zone"
+          }
+        },
+        "required": [
+          "zone"
+        ]
+      }
+    },
+    {
+      "name": "stop_vacuum",
+      "description": "Smart home: stop vacuum",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "toggle_dehumidifier",
+      "description": "Smart home: toggle dehumidifier",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state"
+          }
+        },
+        "required": [
+          "room",
+          "state"
+        ]
+      }
+    },
+    {
+      "name": "toggle_humidifier",
+      "description": "Smart home: toggle humidifier",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state"
+          }
+        },
+        "required": [
+          "room",
+          "state"
+        ]
+      }
+    },
+    {
+      "name": "toggle_outlet",
+      "description": "Smart home: toggle outlet",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          },
+          "outlet_name": {
+            "type": "string",
+            "description": "The outlet name"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state"
+          }
+        },
+        "required": [
+          "room",
+          "outlet_name",
+          "state"
+        ]
+      }
+    },
+    {
+      "name": "trigger_panic_alarm",
+      "description": "Smart home: trigger panic alarm",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "turn_off_tv",
+      "description": "Smart home: turn off tv",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    },
+    {
+      "name": "turn_on_tv",
+      "description": "Smart home: turn on tv",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "The room"
+          }
+        },
+        "required": [
+          "room"
+        ]
+      }
+    }
+  ],
+  "_version": "2.0",
+  "_comment": "53 tools: 12 original VH + 41 barometech HA-relevant"
+}

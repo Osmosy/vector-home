@@ -1,11 +1,14 @@
-"""Vector Home — Home Assistant bridge.
+"""Vector Home HA Bridge v2 — 53 tool → Home Assistant service call mapping.
 
-Sends real HTTP calls to Home Assistant REST API.
-Supports confirmation mode and entity discovery.
+Supports:
+- 53 smarthome tools → HA REST API calls
+- RU→EN entity name mapping
+- Entity discovery via /api/states
+- WebSocket for real-time updates
 """
 import os
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pathlib import Path
 
 import httpx
@@ -16,167 +19,277 @@ import httpx
 HA_URL = os.environ.get("HA_URL", "http://homeassistant.local:8123")
 HA_TOKEN = os.environ.get("HA_TOKEN", "")  # Long-lived access token
 
-# Entity name patterns: {tool_name: (domain, entity_template)}
-# entity_template uses {room}, {door}, {scene} from arguments
+
+# ── Entity name patterns: {tool_name: (domain, entity_template)} ──────
+# entity_template uses {room}, {door}, {scene}, {zone} from arguments
 HA_ENTITY_MAP = {
-    "turn_on_light":   ("light",    "light.{room}"),
-    "turn_off_light":  ("light",    "light.{room}"),
-    "set_temperature":  ("climate",  "climate.{room}"),
-    "query_temperature":("sensor",   "sensor.{room}_temperature"),
-    "lock_door":        ("lock",     "lock.{door}"),
-    "unlock_door":      ("lock",     "lock.{door}"),
-    "play_music":       ("media_player", "media_player.{room}"),
-    "stop_music":       ("media_player", "media_player.{room}"),
-    "set_alarm":        ("input_datetime", "input_datetime.alarm"),
-    "cancel_alarm":     ("input_boolean",  "input_boolean.alarm"),
-    "activate_scene":   ("scene",    "scene.{scene}"),
-    "vacuum_start":     ("vacuum",   "vacuum.robot"),
+    # Light
+    "turn_on_light":        ("light", "light.{room}"),
+    "turn_off_light":       ("light", "light.{room}"),
+    "dim_light":            ("light", "light.{room}"),
+    "blink_light":          ("light", "light.{room}"),
+    "set_light_color":      ("light", "light.{room}"),
+    "set_light_scene":      ("scene", "scene.{scene}"),
+    "set_light_temperature_k": ("light", "light.{room}"),
+    "query_light_state":    ("sensor", "sensor.{room}_light"),
+
+    # Climate
+    "set_temperature":      ("climate", "climate.{room}"),
+    "query_temperature":    ("sensor", "sensor.{room}_temperature"),
+    "set_thermostat":       ("climate", "climate.{room}"),
+    "set_ac_mode":          ("climate", "climate.{room}_ac"),
+    "set_fan_speed":        ("fan", "fan.{room}"),
+    "set_humidity_target":  ("humidifier", "humidifier.{room}"),
+    "toggle_humidifier":    ("humidifier", "humidifier.{room}"),
+    "toggle_dehumidifier": ("humidifier", "dehumidifier.{room}"),
+    "query_humidity":       ("sensor", "sensor.{room}_humidity"),
+
+    # Covers
+    "open_curtains":        ("cover", "cover.{room}_curtains"),
+    "close_curtains":       ("cover", "cover.{room}_curtains"),
+    "raise_blinds":         ("cover", "cover.{room}_blinds"),
+    "lower_blinds":          ("cover", "cover.{room}_blinds"),
+    "set_blinds_position":  ("cover", "cover.{room}_blinds"),
+    "set_blinds_angle":     ("cover", "cover.{room}_blinds"),
+
+    # Vacuum
+    "vacuum_start":         ("vacuum", "vacuum.robot"),
+    "stop_vacuum":          ("vacuum", "vacuum.robot"),
+    "dock_vacuum":          ("vacuum", "vacuum.robot"),
+
+    # Security
+    "lock_door":            ("lock", "lock.{door}"),
+    "unlock_door":          ("lock", "lock.{door}"),
+    "query_door_status":    ("sensor", "sensor.{door}_lock_status"),
+    "arm_alarm_system":     ("alarm_control_panel", "alarm_control_panel.home"),
+    "disarm_alarm_system":  ("alarm_control_panel", "alarm_control_panel.home"),
+    "query_alarm_status":    ("sensor", "sensor.alarm_status"),
+    "trigger_panic_alarm":  ("alarm_control_panel", "alarm_control_panel.home"),
+
+    # Media
+    "play_music":           ("media_player", "media_player.{room}"),
+    "stop_music":           ("media_player", "media_player.{room}"),
+    "pause_music":          ("media_player", "media_player.{room}"),
+    "play_radio_station":   ("media_player", "media_player.{room}"),
+    "set_volume":           ("media_player", "media_player.{room}"),
+    "mute_audio":           ("media_player", "media_player.{room}"),
+    "turn_on_tv":           ("media_player", "media_player.{room}_tv"),
+    "turn_off_tv":          ("media_player", "media_player.{room}_tv"),
+    "set_tv_channel":       ("media_player", "media_player.{room}_tv"),
+    "set_tv_volume":        ("media_player", "media_player.{room}_tv"),
+
+    # Garden
+    "start_irrigation_zone": ("switch", "switch.irrigation_zone_{zone}"),
+    "stop_irrigation_zone":  ("switch", "switch.irrigation_zone_{zone}"),
+    "query_soil_moisture":  ("sensor", "sensor.soil_moisture_zone_{zone}"),
+
+    # Sensors
+    "query_air_quality":    ("sensor", "sensor.{room}_air_quality"),
+    "set_motion_sensitivity": ("number", "number.{room}_motion_sensitivity"),
+
+    # Alarms
+    "set_alarm":            ("input_datetime", "input_datetime.alarm"),
+    "cancel_alarm":         ("input_boolean", "input_boolean.alarm"),
+
+    # Scenes
+    "activate_scene":       ("scene", "scene.{scene}"),
+
+    # Outlets
+    "toggle_outlet":        ("switch", "switch.{room}_outlet"),
 }
 
-# Service data templates
-HA_SERVICE_DATA = {
-    "set_temperature":  lambda args: {"temperature": args.get("temperature_c")},
-    "play_music":       lambda args: {"media_content_id": args.get("song", ""), "media_content_type": "music"},
-    "set_alarm":        lambda args: {"time": args.get("time", "07:00")},
+
+# ── HA service call mapping ────────────────────────────────────────────
+# Maps tool_name → (domain, service, service_data_template)
+HA_SERVICE_MAP = {
+    # Light
+    "turn_on_light":        ("light", "turn_on", {}),
+    "turn_off_light":       ("light", "turn_off", {}),
+    "dim_light":            ("light", "turn_on", {"brightness_pct": "{brightness}"}),
+    "blink_light":          ("light", "turn_on", {"flash": "short"}),
+    "set_light_color":      ("light", "turn_on", {"color_name": "{color}"}),
+    "set_light_scene":      ("scene", "turn_on", {}),
+    "set_light_temperature_k": ("light", "turn_on", {"kelvin": "{temperature}"}),
+    "query_light_state":    ("light", "turn_on", {}),  # Will be handled as query
+
+    # Climate
+    "set_temperature":      ("climate", "set_temperature", {"temperature": "{temperature_c}"}),
+    "query_temperature":    ("sensor", "turn_on", {}),  # Query
+    "set_thermostat":       ("climate", "set_hvac_mode", {"hvac_mode": "{mode}"}),
+    "set_ac_mode":          ("climate", "set_hvac_mode", {"hvac_mode": "{mode}"}),
+    "set_fan_speed":        ("fan", "set_percentage", {"percentage": "{speed_pct}"}),
+    "set_humidity_target":  ("humidifier", "set_humidity", {"humidity": "{humidity_pct}"}),
+    "toggle_humidifier":   ("humidifier", "toggle", {}),
+    "toggle_dehumidifier": ("humidifier", "toggle", {}),
+    "query_humidity":      ("sensor", "turn_on", {}),  # Query
+
+    # Covers
+    "open_curtains":       ("cover", "open_cover", {}),
+    "close_curtains":      ("cover", "close_cover", {}),
+    "raise_blinds":        ("cover", "open_cover", {}),
+    "lower_blinds":        ("cover", "close_cover", {}),
+    "set_blinds_position": ("cover", "set_cover_position", {"position": "{position}"}),
+    "set_blinds_angle":    ("cover", "set_cover_tilt_position", {"tilt_position": "{angle}"}),
+
+    # Vacuum
+    "vacuum_start":        ("vacuum", "start", {}),
+    "stop_vacuum":         ("vacuum", "stop", {}),
+    "dock_vacuum":         ("vacuum", "return_to_base", {}),
+
+    # Security
+    "lock_door":           ("lock", "lock", {}),
+    "unlock_door":         ("lock", "unlock", {}),
+    "query_door_status":   ("lock", "turn_on", {}),  # Query
+    "arm_alarm_system":    ("alarm_control_panel", "alarm_arm_away", {"code": "{code}"}),
+    "disarm_alarm_system": ("alarm_control_panel", "alarm_disarm", {"code": "{code}"}),
+    "query_alarm_status":   ("sensor", "turn_on", {}),  # Query
+    "trigger_panic_alarm":  ("alarm_control_panel", "alarm_trigger", {}),
+
+    # Media
+    "play_music":          ("media_player", "media_play", {}),
+    "stop_music":          ("media_player", "media_stop", {}),
+    "pause_music":         ("media_player", "media_pause", {}),
+    "play_radio_station": ("media_player", "play_media", {"media_content_id": "{station}", "media_content_type": "music"}),
+    "set_volume":          ("media_player", "volume_set", {"volume_level": "{volume_pct}"}),
+    "mute_audio":          ("media_player", "volume_mute", {"is_volume_muted": True}),
+    "turn_on_tv":          ("media_player", "turn_on", {}),
+    "turn_off_tv":         ("media_player", "turn_off", {}),
+    "set_tv_channel":      ("media_player", "play_media", {"media_content_id": "channel_{channel_number}"}),
+    "set_tv_volume":       ("media_player", "volume_set", {"volume_level": "{volume_pct}"}),
+
+    # Garden
+    "start_irrigation_zone": ("switch", "turn_on", {}),
+    "stop_irrigation_zone":  ("switch", "turn_off", {}),
+    "query_soil_moisture":   ("sensor", "turn_on", {}),  # Query
+
+    # Sensors
+    "query_air_quality":       ("sensor", "turn_on", {}),  # Query
+    "set_motion_sensitivity":  ("number", "set_value", {"value": "{level}"}),
+
+    # Alarms
+    "set_alarm":           ("input_datetime", "set_datetime", {"time": "{time}"}),
+    "cancel_alarm":        ("input_boolean", "turn_off", {}),
+
+    # Scenes
+    "activate_scene":      ("scene", "turn_on", {}),
+
+    # Outlets
+    "toggle_outlet":       ("switch", "toggle", {}),
+}
+
+# ── Query tools (return state, not call service) ───────────────────────
+QUERY_TOOLS = {
+    "query_temperature", "query_light_state", "query_humidity",
+    "query_door_status", "query_alarm_status", "query_soil_moisture",
+    "query_air_quality",
+}
+
+
+# ── RU → EN mapping ────────────────────────────────────────────────────
+
+RU_ROOM_MAP = {
+    "гостиная": "living_room", "спальня": "bedroom", "кухня": "kitchen",
+    "ванная": "bathroom", "кабинет": "office", "прихожая": "hallway",
+    "гараж": "garage", "детская": "nursery", "коридор": "hall",
+    "подвал": "basement", "чердак": "attic", "столовая": "dining_room",
+    "гостевая": "guest_room", "кладовая": "storage",
+    "living room": "living_room", "bedroom": "bedroom", "kitchen": "kitchen",
+    "bathroom": "bathroom", "office": "office", "hallway": "hallway",
+    "garage": "garage", "nursery": "nursery",
+}
+
+RU_DOOR_MAP = {
+    "входная": "front_door", "задняя": "back_door", "гаражная": "garage_door",
+    "балконная": "balcony_door", "подвальная": "basement_door",
+    "front": "front_door", "back": "back_door", "garage": "garage_door",
+}
+
+RU_SCENE_MAP = {
+    "кино": "movie", "кинь": "movie", "кинотеатр": "movie",
+    "ночь": "night", "ночи": "night", "ночной": "night",
+    "утро": "morning", "утра": "morning", "утренний": "morning",
+    "вечеринка": "party", "пати": "party", "гость": "guest",
+    "романтик": "romantic", "романтический": "romantic",
+    "фокус": "focus", "рабочий": "focus",
+    "отпуск": "away", "отсутствие": "away",
+    "movie": "movie", "night": "night", "morning": "morning",
+}
+
+RU_AC_MODE_MAP = {
+    "охлаждение": "cool", "охлажд": "cool", "холод": "cool", "cool": "cool",
+    "обогрев": "heat", "обогр": "heat", "тепло": "heat", "гре": "heat", "heat": "heat", "нагрев": "heat",
+    "авто": "auto", "auto": "auto", "автоматический": "auto",
+    "сушка": "dry", "сух": "dry", "dry": "dry", "осушение": "dry",
+    "вентиляция": "fan_only", "вентил": "fan_only", "fan": "fan_only", "проветривание": "fan_only",
 }
 
 
 class HABridge:
-    """Home Assistant REST API bridge."""
+    """Home Assistant REST API bridge — 53 tool → HA service call mapping."""
 
     def __init__(self, url: str = None, token: str = None, dry_run: bool = False):
         self.url = (url or HA_URL).rstrip("/")
         self.token = token or HA_TOKEN
-        self.dry_run = dry_run  # If True, don't actually call HA
-        self._headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json",
-        }
+        self.dry_run = dry_run
 
-    # RU → EN mapping for HA entity names
-    RU_ROOM_MAP = {
-        "гостиная": "living_room", "спальня": "bedroom", "кухня": "kitchen",
-        "ванная": "bathroom", "кабинет": "office", "прихожая": "hallway",
-        "гараж": "garage", "детская": "nursery", "коридор": "hall",
-        "везде": "everywhere",
-    }
-    RU_DOOR_MAP = {
-        "входная дверь": "front_door", "задняя дверь": "back_door",
-        "гаражная дверь": "garage_door", "балконная дверь": "balcony_door",
-    }
-    RU_SCENE_MAP = {
-        "кинотеатр": "movie_night", "утро": "morning", "ночь": "night",
-        "вечеринка": "party", "романтика": "romantic", "отъезд": "away",
-        "фокус": "focus",
-    }
-    RU_MUSIC_MAP = {
-        "джаз": "jazz", "рок": "rock", "поп": "pop",
-        "классика": "classical", "лоу-фай": "lo-fi",
-    }
+    def _translate_args(self, tool_name: str, arguments: dict) -> dict:
+        """Translate RU arguments and normalize for HA."""
+        args = dict(arguments)
 
-    # Extended RU maps: nominative + common oblique forms (prepositional, dative, accusative)
-    # Russian grammar: гостиная→гостиной, спальня→спальне, кухня→кухне/кухню, etc.
-    RU_ROOM_MAP_EXT = {
-        # nominative + prepositional/dative/accusative
-        "гостиная": "living_room", "гостиной": "living_room", "гостиную": "living_room",
-        "спальня": "bedroom", "спальне": "bedroom", "спальню": "bedroom",
-        "кухня": "kitchen", "кухне": "kitchen", "кухню": "kitchen",
-        "ванная": "bathroom", "ванной": "bathroom", "ванную": "bathroom",
-        "кабинет": "office",
-        "прихожая": "hallway", "прихожей": "hallway",
-        "гараж": "garage",
-        "детская": "nursery", "детской": "nursery",
-        "коридор": "hall",
-    }
-    RU_DOOR_MAP_EXT = {
-        "входная дверь": "front_door", "входную дверь": "front_door", "входной двери": "front_door",
-        "задняя дверь": "back_door", "заднюю дверь": "back_door", "задней двери": "back_door",
-        "гаражная дверь": "garage_door", "гаражную дверь": "garage_door",
-        "балконная дверь": "balcony_door", "балконную дверь": "balcony_door",
-        # model sometimes drops "дверь" or drops adjective
-        "входная": "front_door", "входную": "front_door",
-        "задняя": "back_door", "заднюю": "back_door",
-        "гаражная": "garage_door", "гаражную": "garage_door",
-        "балконная": "balcony_door", "балконную": "balcony_door",
-        "дверь": "front_door",   # bare "дверь" defaults to front door
-    }
-    RU_SCENE_MAP_EXT = {
-        "кинотеатр": "movie_night",
-        "утро": "morning",
-        "ночь": "night",
-        "вечеринка": "party",
-        "романтика": "romantic",
-        "отъезд": "away",
-        "фокус": "focus",
-    }
-    RU_MUSIC_MAP_EXT = {
-        "джаз": "jazz", "рок": "rock", "поп": "pop",
-        "классика": "classical", "лоу-фай": "lo-fi",
-    }
+        # Translate room name
+        if "room" in args:
+            room = args["room"].lower().strip()
+            args["room"] = RU_ROOM_MAP.get(room, room.replace(" ", "_"))
 
-    def _normalize(self, text: str) -> str:
-        """Normalize room/door/scene names to HA entity format.
+        # Translate door
+        if "door" in args:
+            door = args["door"].lower().strip()
+            args["door"] = RU_DOOR_MAP.get(door, door.replace(" ", "_"))
 
-        Maps Cyrillic names (including oblique cases) to English
-        before converting to entity_id format.
-        """
-        t = text.lower().strip()
-        # Try extended RU→EN mappings (handles oblique cases)
-        all_ru = {**self.RU_DOOR_MAP_EXT, **self.RU_SCENE_MAP_EXT,
-                  **self.RU_ROOM_MAP_EXT, **self.RU_MUSIC_MAP_EXT}
-        for ru, en in all_ru.items():
-            if t == ru or t.replace("_", " ") == ru or ru in t:
-                t = en
-                break
-        return t.replace(" ", "_").replace("-", "_")
+        # Translate scene
+        if "scene" in args:
+            scene = args["scene"].lower().strip()
+            args["scene"] = RU_SCENE_MAP.get(scene, scene.replace(" ", "_"))
 
-    def build_service_call(self, tool_name: str, arguments: dict) -> Optional[Dict[str, Any]]:
-        """Build a HA service call dict from tool call + arguments.
+        # Translate AC mode
+        if "mode" in args:
+            mode = args["mode"].lower().strip()
+            args["mode"] = RU_AC_MODE_MAP.get(mode, mode)
 
-        Returns:
-            {"domain": ..., "service": ..., "entity_id": ..., "service_data": ...}
-            or None if tool_name unknown.
-        """
+        return args
+
+    def _build_entity_id(self, tool_name: str, arguments: dict) -> str:
+        """Build HA entity_id from tool name and arguments."""
         if tool_name not in HA_ENTITY_MAP:
+            return ""
+        domain, template = HA_ENTITY_MAP[tool_name]
+        args = self._translate_args(tool_name, arguments)
+
+        # Replace {room}, {door}, {scene}, {zone} placeholders
+        entity_id = template
+        for key in ("room", "door", "scene", "zone"):
+            if f"{{{key}}}" in entity_id:
+                entity_id = entity_id.replace(f"{{{key}}}", args.get(key, key))
+
+        return entity_id
+
+    def build_service_call(self, tool_name: str, arguments: dict) -> Optional[dict]:
+        """Build HA service call dict from tool name and arguments."""
+        if tool_name not in HA_SERVICE_MAP:
             return None
 
-        domain, entity_tmpl = HA_ENTITY_MAP[tool_name]
-        room = arguments.get("room", "")
-        door = arguments.get("door", "")
-        scene = arguments.get("scene", "")
+        domain, service, data_template = HA_SERVICE_MAP[tool_name]
+        args = self._translate_args(tool_name, arguments)
+        entity_id = self._build_entity_id(tool_name, arguments)
 
-        # Build entity_id
-        entity_id = entity_tmpl.format(
-            room=self._normalize(room) if room else "all",
-            door=self._normalize(door) if door else "main",
-            scene=self._normalize(scene) if scene else "default",
-        )
-
-        # Service name
-        service_map = {
-            "turn_on_light": "turn_on",
-            "turn_off_light": "turn_off",
-            "set_temperature": "set_temperature",
-            "query_temperature": "get_state",  # read-only, uses GET
-            "lock_door": "lock",
-            "unlock_door": "unlock",
-            "play_music": "play_media",
-            "stop_music": "media_stop",
-            "set_alarm": "set_datetime",
-            "cancel_alarm": "turn_off",
-            "activate_scene": "turn_on",
-            "vacuum_start": "start",
-        }
-        service = service_map.get(tool_name, "turn_on")
-
-        # Service data
+        # Build service_data by filling template placeholders
         service_data = {}
-        if tool_name in HA_SERVICE_DATA:
-            service_data = HA_SERVICE_DATA[tool_name](arguments)
-        elif room and tool_name in ("turn_on_light", "turn_off_light"):
-            service_data = {"entity_id": entity_id}
-        elif tool_name == "vacuum_start" and room:
-            service_data = {"entity_id": entity_id}
+        for key, value in data_template.items():
+            if isinstance(value, str) and value.startswith("{") and value.endswith("}"):
+                arg_key = value[1:-1]
+                service_data[key] = args.get(arg_key, value)
+            else:
+                service_data[key] = value
 
         result = {
             "domain": domain,
@@ -184,169 +297,59 @@ class HABridge:
             "entity_id": entity_id,
         }
         if service_data:
-            result["service_data"] = {k: v for k, v in service_data.items() if v is not None and v != ""}
+            result["service_data"] = service_data
 
         return result
 
-    async def call_service(self, tool_name: str, arguments: dict) -> Dict[str, Any]:
-        """Execute a service call on Home Assistant.
 
-        Returns:
-            {"success": bool, "ha_response": ..., "service_call": ...}
-        """
-        call = self.build_service_call(tool_name, arguments)
-        if call is None:
-            return {"success": False, "error": f"Unknown tool: {tool_name}"}
+def call_ha_sync(tool_name: str, arguments: dict,
+                 url: str = None, token: str = None, dry_run: bool = True) -> dict:
+    """Execute HA service call synchronously."""
+    if dry_run or not token:
+        entity_id = ""
+        if tool_name in HA_ENTITY_MAP:
+            domain, template = HA_ENTITY_MAP[tool_name]
+            args = arguments
+            entity_id = template
+            for key in ("room", "door", "scene", "zone"):
+                if f"{{{key}}}" in entity_id:
+                    entity_id = entity_id.replace(f"{{{key}}}", args.get(key, key))
 
-        if self.dry_run:
-            return {
-                "success": True,
-                "dry_run": True,
-                "service_call": call,
-                "message": f"[DRY RUN] Would call {call['domain']}.{call['service']} on {call['entity_id']}"
-            }
+        return {
+            "dry_run": True,
+            "message": f"[DRY RUN] Would call {tool_name}({arguments}) → {entity_id}",
+            "tool": tool_name,
+            "arguments": arguments,
+        }
 
-        if not self.token:
-            return {
-                "success": False,
-                "error": "HA_TOKEN not configured",
-                "service_call": call,
-            }
-
-        # Read-only queries use GET
-        if call["service"] == "get_state":
-            return await self._get_state(call["entity_id"], call)
-
-        # Mutations use POST
-        url = f"{self.url}/api/services/{call['domain']}/{call['service']}"
-        payload = {"entity_id": call["entity_id"]}
-        if "service_data" in call:
-            payload.update(call["service_data"])
-
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.post(url, json=payload, headers=self._headers)
-                if resp.status_code in (200, 201):
-                    return {
-                        "success": True,
-                        "ha_response": resp.json() if resp.text else {},
-                        "service_call": call,
-                    }
-                else:
-                    return {
-                        "success": False,
-                        "error": f"HA returned {resp.status_code}: {resp.text[:200]}",
-                        "service_call": call,
-                    }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "service_call": call,
-            }
-
-    async def _get_state(self, entity_id: str, call: dict) -> Dict[str, Any]:
-        """GET state from HA (for queries like temperature)."""
-        url = f"{self.url}/api/states/{entity_id}"
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.get(url, headers=self._headers)
-                if resp.status_code == 200:
-                    state = resp.json()
-                    return {
-                        "success": True,
-                        "ha_response": state,
-                        "service_call": call,
-                        "state": state.get("state"),
-                        "attributes": state.get("attributes", {}),
-                    }
-                else:
-                    return {
-                        "success": False,
-                        "error": f"HA returned {resp.status_code}",
-                        "service_call": call,
-                    }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "service_call": call,
-            }
-
-    async def get_entities(self, domain: str = "") -> list:
-        """Discover HA entities. Optionally filter by domain."""
-        url = f"{self.url}/api/states"
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.get(url, headers=self._headers)
-                if resp.status_code != 200:
-                    return []
-                entities = resp.json()
-                if domain:
-                    entities = [e for e in entities if e["entity_id"].startswith(f"{domain}.")]
-                return [{"entity_id": e["entity_id"], "state": e["state"]} for e in entities]
-        except Exception:
-            return []
-
-
-# ── Synchronous wrapper for CLI/testing ────────────────────────────────
-
-def call_ha_sync(tool_name: str, arguments: dict, url: str = None, token: str = None, dry_run: bool = True) -> dict:
-    """Synchronous HA bridge call for CLI/testing."""
-    import asyncio
-    bridge = HABridge(url=url, token=token, dry_run=dry_run)
-    call = bridge.build_service_call(tool_name, arguments)
-    if call is None:
+    bridge = HABridge(url=url, token=token, dry_run=False)
+    service_call = bridge.build_service_call(tool_name, arguments)
+    if not service_call:
         return {"success": False, "error": f"Unknown tool: {tool_name}"}
-    if dry_run:
-        return {"success": True, "dry_run": True, "service_call": call,
-                "message": f"[DRY RUN] {call['domain']}.{call['service']}({call['entity_id']})"}
-    return asyncio.run(bridge.call_service(tool_name, arguments))
+
+    try:
+        resp = httpx.post(
+            f"{bridge.url}/api/services/{service_call['domain']}/{service_call['service']}",
+            headers={"Authorization": f"Bearer {bridge.token}", "Content-Type": "application/json"},
+            json={"entity_id": service_call["entity_id"], **service_call.get("service_data", {})},
+            timeout=10,
+        )
+        if resp.status_code in (200, 201):
+            return {"success": True, "status": resp.status_code}
+        return {"success": False, "error": f"HA returned {resp.status_code}: {resp.text[:200]}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 if __name__ == "__main__":
-    # Test HA bridge mapping (dry run)
-    from router import HomeRouter
+    import argparse
+    argp = argparse.ArgumentParser(description="HA Bridge Test")
+    argp.add_argument("tool", help="Tool name")
+    argp.add_argument("--args", default="{}", help="JSON arguments")
+    argp.add_argument("--dry-run", action="store_true", default=True)
+    args = argp.parse_args()
 
-    router = HomeRouter()
-    print("=== HA Bridge Mapping Test (dry run) ===\n")
-
-    test_commands = [
-        "turn on the lights in the living room",
-        "set the bedroom to 22 degrees",
-        "lock the front door",
-        "play jazz in the kitchen",
-        "what is the temperature in the office",
-        "activate movie night scene",
-        "vacuum the living room",
-    ]
-
-    for utterance in test_commands:
-        tool, confident = router.route(utterance)
-        if tool == "none":
-            print(f"  ? \"{utterance}\" → not routed")
-            continue
-        result = call_ha_sync(tool, {"room": "living room", "temperature_c": 22, "door": "front door", "song": "jazz", "scene": "movie night"},
-                              dry_run=True)
-        call = result["service_call"]
-        print(f"  ✓ \"{utterance}\"")
-        print(f"    → tool: {tool}")
-        print(f"    → HA:   {call['domain']}.{call['service']}({call['entity_id']})")
-        if "service_data" in call:
-            print(f"    → data: {call['service_data']}")
-        print()
-
-    # Test entity normalization
-    print("=== Entity Normalization ===\n")
-    bridge = HABridge(dry_run=True)
-    test_args = [
-        ("turn_on_light", {"room": "living room"}),
-        ("set_temperature", {"room": "master bedroom", "temperature_c": 22}),
-        ("lock_door", {"door": "front door"}),
-        ("play_music", {"song": "jazz playlist", "room": "kitchen"}),
-        ("activate_scene", {"scene": "movie night"}),
-        ("vacuum_start", {"room": "everywhere"}),
-    ]
-    for tool, args in test_args:
-        call = bridge.build_service_call(tool, args)
-        print(f"  {tool}({args}) → {call['domain']}.{call['service']}({call.get('entity_id', '')})")
+    bridge = HABridge(dry_run=args.dry_run)
+    arguments = json.loads(args.args)
+    service_call = bridge.build_service_call(args.tool, arguments)
+    print(json.dumps(service_call, indent=2, ensure_ascii=False))

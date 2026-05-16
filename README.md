@@ -1,149 +1,169 @@
-<div align="center">
+# 🏠 Vector Home v2
 
-<img src="assets/logo-original.png" alt="Vector Home Logo" width="200"/>
+> Умный дом на CPU. Без облака, без API-ключей, без интернета.
+> 52 инструмента, RU+EN команды, веб-панель, Home Assistant.
 
-# Vector Home
-
-**Offline CPU-only smart home control**
-
-Voice/text → Router → GPT-2 Parser → Home Assistant
-
-No cloud · No GPU · No API keys
-
-[![EN Accuracy](https://img.shields.io/badge/EN-100%25-brightgreen?style=flat-square)](#accuracy)
-[![RU Accuracy](https://img.shields.io/badge/RU-95%25-green?style=flat-square)](#accuracy)
-[![Latency](https://img.shields.io/badge/Latency-<3s_CPU-blue?style=flat-square)](#requirements)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-
-</div>
-
----
-
-## Architecture
+## Архитектура
 
 ```
-Voice / Text
-     │
-     ▼
-┌──────────┐
-│  Router   │  keyword/regex classifier (0 RAM, RU + EN)
-└─────┬────┘
-      ├── hit ─────► GPT-2 124M (600 MB) ──► JSON
-      ├── miss ────► Qwen3:8B via Ollama (multi-intent)
-      └── ambiguous ► clarify (ask user)
-      │
-      ▼
-┌──────────────────┐        ┌─────────────────┐
-│  Home Assistant   │◄──────►│  HA WebSocket    │
-│  REST API         │        │  (real-time)     │
-└──────────────────┘        └─────────────────┘
-      │
-      ▼
-┌──────────────────┐
-│  Voice Pipeline   │  Whisper tiny → Piper (offline) / edge-tts
-└──────────────────┘
+Голос / Текст
+      ↓
+┌─────────────┐    ┌──────────────┐
+│   Router v2  │───→│   Parser v2  │
+│ regex + Ollama│   │ GPT-2 124M  │
+│  95 правил    │   │ 53 инструм.  │
+│  100% EN/RU  │   │              │
+└──────┬──────┘    └──────┬───────┘
+       │                   │
+       └───────┬───────────┘
+               ↓
+       ┌───────────────┐
+       │   HA Bridge    │
+       │ 53→HA mapping  │
+       │ RU→EN translate│
+       └───────┬───────┘
+               ↓
+        Home Assistant
 ```
 
-## Status
+## 52 инструмента
 
-| Phase | Description | Status |
-|:-----:|:-----------|:------:|
-| 0 | Foundation — EN SFT, validation | ✅ |
-| 1 | Router — keyword/regex, fallback | ✅ |
-| 2 | Integration — FastAPI, HA bridge, WebSocket | ✅ |
-| 3 | Voice — STT + TTS, closed loop | ✅ |
-| 4 | RU SFT — 695 examples | ✅ 95% |
-| 5 | Real HA connection | ⏳ |
+| Домен | Инструменты |
+|-------|------------|
+| 💡 Свет | `turn_on_light`, `turn_off_light`, `dim_light`, `blink_light`, `set_light_color`, `set_light_scene`, `set_light_temperature_k`, `query_light_state` |
+| 🌡️ Климат | `set_temperature`, `query_temperature`, `set_thermostat`, `set_ac_mode`, `set_fan_speed`, `set_humidity_target`, `toggle_humidifier`, `toggle_dehumidifier`, `query_humidity` |
+| 🪟 Шторы | `open_curtains`, `close_curtains`, `raise_blinds`, `lower_blinds`, `set_blinds_position`, `set_blinds_angle` |
+| 🤖 Пылесос | `vacuum_start`, `stop_vacuum`, `dock_vacuum` |
+| 🔒 Безопасность | `lock_door`, `unlock_door`, `query_door_status`, `arm_alarm_system`, `disarm_alarm_system`, `query_alarm_status`, `trigger_panic_alarm` |
+| 🎵 Медиа | `play_music`, `stop_music`, `pause_music`, `play_radio_station`, `set_volume`, `mute_audio`, `turn_on_tv`, `turn_off_tv`, `set_tv_channel`, `set_tv_volume` |
+| 🌿 Сад | `start_irrigation_zone`, `stop_irrigation_zone`, `query_soil_moisture` |
+| 📡 Сенсоры | `query_air_quality`, `set_motion_sensitivity` |
+| ⏰ Будильник | `set_alarm`, `cancel_alarm` |
+| 🎬 Сцены | `activate_scene` |
+| 🔌 Розетки | `toggle_outlet` |
 
-## Accuracy
-
-| Test | Result |
-|:-----|:------:|
-| EN single-tool (12 commands) | **100%** |
-| RU single-tool (20 commands) | **95%** |
-| Router (44 commands, RU+EN) | **100%** |
-| Multi-tool (12-in-1) | 8%* |
-
-\* *Architecture limit — GPT-2 124M cannot decompose multi-step commands. Use Qwen3:8B fallback.*
-
-## Supported Commands
-
-12 tools, 2 languages:
-
-| Tool | English | Русский |
-|:-----|:--------|:--------|
-| 💡 Lights on | turn on the lights in the living room | включи свет в гостиной |
-| 💡 Lights off | turn off garage lights | выключи свет на кухне |
-| 🌡️ Set temp | set bedroom to 22 degrees | установи температуру 22 градуса |
-| 🌡️ Query temp | what is the temperature? | какая температура в спальне |
-| 🔒 Lock | lock the front door | запри входную дверь |
-| 🔓 Unlock | unlock the back door | открой замок |
-| 🎵 Play music | play jazz in the kitchen | включи джаз на кухне |
-| ⏹️ Stop music | stop music in the bathroom | останови музыку |
-| ⏰ Set alarm | wake me up at 07:30 | поставь будильник на 7 утра |
-| 🚫 Cancel alarm | cancel the alarm | отмени будильник |
-| 🎬 Scene | activate movie night | включи сцену кинотеатр |
-| 🤖 Vacuum | vacuum the office | пропылесось кухню |
-
-## Quick Start
+## Быстрый старт
 
 ```bash
 git clone https://github.com/Osmosy/vector-home.git
 cd vector-home
 pip install -r requirements.txt
 
-# Text command (dry-run by default)
+# Тесты
+python -m pytest tests/ -v                  # 130/130 ✓
+
+# API сервер (порт 8126)
 python -m src.api
 
-# Voice pipeline
-python -m src.voice
+# Веб-панель: http://localhost:8126/panel
 
-# Train your own model
-python -m src.train_ha          # EN SFT (24 min CPU)
-python -m src.train_ha_ru       # RU SFT (25 min CPU)
+# CLI
+python -m src.pipeline "turn on the lights in the living room"
+python -m src.pipeline "включи свет в гостиной"
+
+# Голосовой пайплайн (нужен faster-whisper)
+python -m src.voice --interactive
 ```
 
-## Requirements
+## Переменные окружения
 
-| | Minimum | Recommended |
-|:--|:--------|:------------|
-| CPU | Any x86_64 | 4+ cores |
-| RAM | 600 MB (parser only) | 6 GB (with Qwen3 fallback) |
-| Disk | 1.5 GB | 2 GB |
-| GPU | Not required | — |
-| Python | 3.10+ | 3.12 |
-| Internet | Not required | For Ollama models |
+| Переменная | Описание | По умолчанию |
+|-----------|----------|-------------|
+| `HA_URL` | URL Home Assistant | `http://homeassistant.local:8123` |
+| `HA_TOKEN` | Long-lived access token | (пусто = dry run) |
+| `VH_PORT` | Порт API сервера | `8126` |
+| `GPT2_REPO` | Путь к gpt2-tool-call | `../gpt2-tool-call` |
 
-## Project Structure
+## Точность роутера
+
+| Набор | Точность |
+|-------|---------|
+| EN команды | 100% |
+| RU команды | 100% |
+| Порядок правил | ✓ (query до set, dim до off, thermostat до AC) |
+| `\b` баг для кириллицы | ✗ исправлен |
+
+## Структура проекта
 
 ```
-src/
-├── router.py              # Keyword/regex intent classifier (12+ tools, RU+EN)
-├── parser.py              # GPT-2 124M inference
-├── pipeline.py            # Full pipeline: router → parser → HA bridge
-├── api.py                 # FastAPI server (port 8126)
-├── ha_bridge.py            # Home Assistant REST + RU→EN entity mapping
-├── ha_ws.py               # Home Assistant WebSocket client
-├── voice.py               # Voice pipeline: STT → pipeline → TTS
-├── train_ha.py            # EN SFT training
-├── train_ha_ru.py         # RU SFT training
-└── generate_ru_dataset.py # RU dataset generator
+vector-home/
+├── src/
+│   ├── router.py        # Regex роутер v2, 95 правил, EN+RU
+│   ├── parser.py        # GPT-2 124M, 53 инструмента, fuzzy match
+│   ├── pipeline.py     # Полный пайплайн: router→parser→HA
+│   ├── api.py           # FastAPI + WebSocket + /panel
+│   ├── ha_bridge.py     # 53 tool → HA mapping, RU→EN
+│   └── voice.py         # STT→router→parser→HA→TTS
+├── static/
+│   ├── index.html       # Веб-панель — 8 групп устройств
+│   ├── style.css        # Тёмная тема
+│   └── app.js           # WebSocket + голосовой ввод
+├── data/
+│   ├── tools_spec_v2.json  # 52 инструмента + none
+│   ├── train_dataset_v2.json  # 1000 примеров
+│   └── test_dataset_v2.json   # Тестовый сплит
+├── tests/
+│   └── test_router.py   # 130 тестов: router, HA bridge, parser spec
+├── docs/
+│   └── SPEC.md          # Техническое задание v2
+└── models/              # GPT-2 weights (git-lfs)
 ```
 
-## Documentation
+## Веб-панель
 
-- 📄 [SPEC.md](docs/SPEC.md) — Technical specification (Russian)
-- 🚀 [QUICK_START.md](docs/QUICK_START.md) — Getting started
-- 📖 [USER_GUIDE.md](docs/USER_GUIDE.md) — User manual
-- 🔧 [HARDWARE_GUIDE.md](docs/HARDWARE_GUIDE.md) — Hardware setup
-- 📝 [DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md) — Development chronicle
+Доступна на `http://localhost:8126/panel`:
 
-## License
+- 💡 Свет, 🌡️ Климат, 🪟 Шторы, 🤖 Пылесос, 🔒 Безопасность, 🎵 Медиа, 🌿 Сад, ⚡ Другое
+- Текстовый ввод команд (RU+EN)
+- 🎤 Голосовой ввод (Web Speech API)
+- WebSocket для real-time обновлений
+- История команд
 
-MIT — see [LICENSE](LICENSE)
+## Home Assistant
 
-<div align="center">
+Для реального управления устройствами:
 
-Built by [Osmosy](https://github.com/Osmosy) · Powered by [gpt2-tool-call](https://github.com/barometech/gpt2-tool-call)
+1. Создайте Long-Lived Access Token в HA (`/profile/security`)
+2. Установите переменные:
 
-</div>
+```bash
+export HA_URL="http://homeassistant.local:8123"
+export HA_TOKEN="ваш_токен"
+```
+
+3. Запустите API с флагом `--live`:
+
+```bash
+python -m src.api --live
+# или через pipeline:
+python -m src.pipeline --live "turn on the lights"
+```
+
+Без токена — dry run режим (логирует, не отправляет в HA).
+
+## Fallback на Ollama
+
+Роутер использует regex-правила (100% точность на тестах). Если regex не находит совпадение — fallback на Qwen3:8B через Ollama:
+
+```bash
+# Убедитесь что Ollama запущена
+ollama serve
+ollama pull qwen3:8b    # или qwen3:7b для минимум
+```
+
+## Отличие от barometech/smart-home-gpt2
+
+| | Vector Home v2 | smart-home-gpt2 |
+|---|---|---|
+| Роутер | Regex+fallback, 100% EN/RU | GPT-2 124M, multi-tool 71.7% |
+| Парсер | GPT-2 124M, single-tool | GPT-2 124M, multi-tool |
+| Инструментов | 52 | 100 |
+| Голос | faster-whisper medium | faster-whisper medium |
+| Веб-панель | ✓ (WebSocket) | ✗ |
+| HA интеграция | ✓ (53 mapping) | Эмулятор |
+| Тесты | 130 pytest | — |
+| Русский | ✓ нативно | ✓ через translate |
+
+## Лицензия
+
+MIT

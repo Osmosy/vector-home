@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from router import HomeRouter
 from parser import HomeParser
-from ha_bridge import HABridge
+from ha_bridge import HABridge, call_ha_sync
 from pipeline import process
 
 # ── Piper TTS config ────────────────────────────────────────────────

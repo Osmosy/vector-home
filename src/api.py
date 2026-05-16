@@ -1,27 +1,23 @@
-"""Vector Home API — FastAPI endpoint for smart-home command processing.
+"""Vector Home API v2 — FastAPI server with WebSocket, history, and web dashboard.
 
-POST /command  {"utterance": "turn on the lights in the living room"}
-GET  /health
-GET  /tools
-GET  /entities?domain=light
-POST /ha/call  {"tool_name": "turn_on_light", "arguments": {"room": "living room"}}
-
-Environment:
-    HA_URL   — Home Assistant URL (default: http://homeassistant.local:8123)
-    HA_TOKEN — Long-lived access token
-    VH_PORT  — Server port (default: 8126)
-    VH_DRY_RUN — If "1", don't actually call HA
+Endpoints:
+    POST /command       — process text command through full pipeline
+    GET  /health        — system health check
+    GET  /tools         — list 53 available tools
+    GET  /entities      — list HA entities (filterable by domain)
+    POST /ha/call        — direct HA service call
+    GET  /history        — recent command history
+    WS   /ws            — WebSocket for real-time dashboard updates
+    GET  /panel          — web dashboard (serves static/index.html)
 """
-import os
-import sys
-import json
-import time
+import os, sys, json, asyncio
 from pathlib import Path
+from datetime import datetime
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 sys.stdout.reconfigure(encoding='utf-8') if hasattr(sys.stdout, 'reconfigure') else None
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -29,43 +25,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from router import HomeRouter
 from parser import HomeParser
 from ha_bridge import HABridge
+from pipeline import process
 
-app = FastAPI(title="Vector Home API", version="0.2.0")
+# ── App Setup ──────────────────────────────────────────────────────────
 
-# CORS for web clients
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="Vector Home v2", version="2.0.0")
 
-# Initialize components at startup
+# Global state (initialized on startup)
 _router: Optional[HomeRouter] = None
 _parser: Optional[HomeParser] = None
 _ha: Optional[HABridge] = None
+_history: list = []  # In-memory command history
+MAX_HISTORY = 100
 
+# WebSocket connections for dashboard
+_ws_clients: list = []
 
-class CommandRequest(BaseModel):
-    utterance: str
-    skip_confirm: bool = True
-    use_fallback: bool = True  # Allow Ollama fallback on router miss
-
-
-class CommandResponse(BaseModel):
-    tool_name: str
-    arguments: dict
-    confident: bool
-    used_fallback: bool
-    latency_ms: float
-    ha_service: Optional[dict] = None
-    ha_result: Optional[dict] = None
-
-
-class HACallRequest(BaseModel):
-    tool_name: str
-    arguments: dict = {}
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 
 @app.on_event("startup")
@@ -73,104 +49,194 @@ async def startup():
     global _router, _parser, _ha
     _router = HomeRouter()
     _parser = HomeParser(verbose=False)
-    _ha = HABridge(
-        url=os.environ.get("HA_URL", "http://homeassistant.local:8123"),
-        token=os.environ.get("HA_TOKEN", ""),
-        dry_run=os.environ.get("VH_DRY_RUN", "1") == "1",
-    )
-    print(f"[VectorHome] Router: ready (rules={len(_router._rules)})")
-    print(f"[VectorHome] Parser: ready (model=gpt2_ha_best.pt)")
-    print(f"[VectorHome] HA Bridge: {'DRY RUN' if _ha.dry_run else 'LIVE'} ({_ha.url})")
+    _ha = HABridge(dry_run=True)
+    print(f"[API] Vector Home v2 ready — {len(_router.ALL_TOOLS)} tools")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    print("[API] Vector Home v2 shutting down")
+
+
+# ── Static Dashboard ───────────────────────────────────────────────────
+
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+@app.get("/panel", response_class=HTMLResponse)
+async def dashboard():
+    """Serve the web dashboard."""
+    index = STATIC_DIR / "index.html"
+    if index.exists():
+        return index.read_text(encoding='utf-8')
+    return HTMLResponse("<h1>Dashboard not found</h1><p>Run: build the static/ directory</p>")
+
+
+# ── REST API ────────────────────────────────────────────────────────────
+
+from pydantic import BaseModel
+
+
+class CommandRequest(BaseModel):
+    text: str
+    live: bool = False
+
+
+class CommandResponse(BaseModel):
+    tool: str
+    arguments: dict
+    ha_service: Optional[dict] = None
+    latency_s: float = 0
+    used_fallback: bool = False
+    ha_result: Optional[dict] = None
+
+
+@app.post("/command", response_model=CommandResponse)
+async def command(req: CommandRequest):
+    """Process a text command through the full pipeline."""
+    if not _router or not _parser:
+        raise HTTPException(503, "Server not ready")
+
+    _ha.dry_run = not req.live
+    result = process(req.text, _router, _parser, _ha, verbose=False)
+
+    # Store in history
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "text": req.text,
+        "result": result,
+    }
+    _history.append(entry)
+    if len(_history) > MAX_HISTORY:
+        _history.pop(0)
+
+    # Broadcast to WebSocket clients
+    await _broadcast(json.dumps({"type": "command", "data": entry}, ensure_ascii=False))
+
+    return result
 
 
 @app.get("/health")
 async def health():
-    return {
+    """System health check."""
+    status = {
         "status": "ok",
-        "router": "ready" if _router else "not_loaded",
-        "parser": "ready" if _parser else "not_loaded",
-        "ha_bridge": "ready" if _ha else "not_loaded",
-        "parser_model": "gpt2_ha_best.pt" if _parser else "none",
-        "ha_mode": "dry_run" if _ha and _ha.dry_run else "live",
-        "stats": _router.stats if _router else {},
+        "version": "2.0.0",
+        "tools": len(_router.ALL_TOOLS) if _router else 0,
+        "router": "loaded" if _router else "not loaded",
+        "parser": "loaded" if _parser else "not loaded",
+        "ha_bridge": "connected" if _ha and not _ha.dry_run else "dry_run",
     }
+    return status
 
 
 @app.get("/tools")
 async def list_tools():
-    from parser import load_tools_spec
-    tools = load_tools_spec()
-    return {"tools": tools, "count": len(tools)}
+    """List all 53 available tools with descriptions."""
+    if not _parser:
+        raise HTTPException(503, "Parser not loaded")
+    return {"tools": _parser.tools, "count": len(_parser.tools)}
 
 
 @app.get("/entities")
-async def get_entities(domain: str = ""):
-    """Discover HA entities. Optional ?domain=light filter."""
+async def list_entities(domain: str = Query(None, description="Filter by HA domain")):
+    """List HA entities, optionally filtered by domain."""
     if not _ha:
         raise HTTPException(503, "HA bridge not loaded")
-    entities = await _ha.get_entities(domain=domain)
+    entities = await _ha.list_entities(domain=domain)
     return {"entities": entities, "count": len(entities)}
 
 
-@app.post("/command", response_model=CommandResponse)
-async def process_command(req: CommandRequest):
-    if not _router or not _parser:
-        raise HTTPException(503, "Components not loaded")
-
-    t0 = time.time()
-
-    # Step 1: Route
-    tool_name, confident = _router.route(req.utterance)
-    used_fallback = False
-
-    # Step 2: Fallback if not confident
-    if not confident and req.use_fallback:
-        try:
-            tool_name, used_fallback = _router.route_with_fallback(req.utterance)
-            confident = True
-        except Exception:
-            tool_name = "none"
-
-    # Step 3: Parse arguments
-    arguments = {}
-    parse_error = False
-    if tool_name != "none":
-        result = _parser.parse(req.utterance, tool_name)
-        arguments = result.get("arguments", {})
-        parse_error = result.get("_parse_error", False)
-
-    latency_ms = (time.time() - t0) * 1000
-
-    # Step 4: Map to HA service call
-    ha_service = _ha.build_service_call(tool_name, arguments) if tool_name != "none" else None
-
-    # Step 5: Execute HA call (async)
-    ha_result = None
-    if tool_name != "none" and ha_service:
-        ha_result = await _ha.call_service(tool_name, arguments)
-
-    return CommandResponse(
-        tool_name=tool_name,
-        arguments=arguments,
-        confident=confident and not parse_error,
-        used_fallback=used_fallback,
-        latency_ms=round(latency_ms, 1),
-        ha_service=ha_service,
-        ha_result=ha_result,
-    )
-
-
 @app.post("/ha/call")
-async def ha_call_direct(req: HACallRequest):
-    """Direct HA service call (bypass routing)."""
+async def ha_call(tool_name: str, arguments: dict = {}, live: bool = True):
+    """Direct HA service call."""
     if not _ha:
         raise HTTPException(503, "HA bridge not loaded")
-    result = await _ha.call_service(req.tool_name, req.arguments)
+    _ha.dry_run = not live
+    result = call_ha_sync(tool_name, arguments, url=_ha.url, token=_ha.token, dry_run=_ha.dry_run)
     return result
+
+
+@app.get("/history")
+async def history(limit: int = Query(20, ge=1, le=100)):
+    """Recent command history."""
+    return {"history": _history[-limit:], "total": len(_history)}
+
+
+# ── WebSocket ────────────────────────────────────────────────────────────
+
+@app.websocket("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    """WebSocket for real-time dashboard updates."""
+    await ws.accept()
+    _ws_clients.append(ws)
+    try:
+        # Send initial state
+        await ws.send_json({"type": "init", "tools_count": len(_router.ALL_TOOLS) if _router else 0,
+                            "history": _history[-20:]})
+        # Keep alive
+        while True:
+            data = await ws.receive_text()
+            # Allow command via WebSocket
+            if data.startswith("/command "):
+                text = data[9:]
+                _ha.dry_run = True
+                result = process(text, _router, _parser, _ha, verbose=False)
+                entry = {"timestamp": datetime.now().isoformat(), "text": text, "result": result}
+                _history.append(entry)
+                if len(_history) > MAX_HISTORY:
+                    _history.pop(0)
+                await ws.send_json({"type": "command", "data": entry})
+            elif data == "ping":
+                await ws.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        pass
+    finally:
+        if ws in _ws_clients:
+            _ws_clients.remove(ws)
+
+
+async def _broadcast(message: str):
+    """Broadcast message to all connected WebSocket clients."""
+    for ws in list(_ws_clients):
+        try:
+            await ws.send_text(message)
+        except Exception:
+            if ws in _ws_clients:
+                _ws_clients.remove(ws)
+
+
+# ── HABridge async extension ────────────────────────────────────────────
+
+# Add list_entities to HABridge for the API
+async def _ha_list_entities(self, domain: str = None):
+    """List HA entities via REST API."""
+    if not self.token:
+        return []
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            url = f"{self.url}/api/states"
+            headers = {"Authorization": f"Bearer {self.token}"}
+            resp = await client.get(url, headers=headers, timeout=10)
+            if resp.status_code != 200:
+                return []
+            entities = resp.json()
+            if domain:
+                entities = [e for e in entities if e["entity_id"].startswith(f"{domain}.")]
+            return [{"entity_id": e["entity_id"], "state": e["state"],
+                      "attributes": {k: v for k, v in e.get("attributes", {}).items()
+                                      if k not in ("friendly_name", "icon", "entity_id")}}
+                     for e in entities]
+    except Exception:
+        return []
+
+
+# Monkey-patch the async method onto HABridge
+HABridge.list_entities = _ha_list_entities
 
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("VH_PORT", 8126))
-    print(f"Starting Vector Home API on port {port}...")
+    port = int(os.environ.get("VH_PORT", "8126"))
     uvicorn.run(app, host="0.0.0.0", port=port)
