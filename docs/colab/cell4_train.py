@@ -5,8 +5,9 @@ from unsloth import is_bfloat16_supported
 trainer = SFTTrainer(
     model = model,
     tokenizer = tokenizer,
-    train_dataset = train_formatted,
-    eval_dataset = eval_formatted,
+    train_dataset = train_data,
+    eval_dataset = eval_data,
+    formatting_func = formatting_func,
     max_seq_length = 512,
     dataset_num_proc = 2,
     args = TrainingArguments(
@@ -33,7 +34,7 @@ trainer = SFTTrainer(
 )
 
 print("Training started...")
-print(f"  Examples: {len(train_formatted)}")
+print(f"  Examples: {len(train_data)}")
 print(f"  Epochs: 3, LoRA rank: 16, Batch: 16")
 print(f"  Expected time: ~30-40 min on T4")
 

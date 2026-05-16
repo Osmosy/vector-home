@@ -10,16 +10,15 @@ eval_data  = json.loads(requests.get(EVAL_URL).text)
 print(f"Train: {len(train_data)} examples")
 print(f"Eval:  {len(eval_data)} examples")
 
-def format_example(example):
-    return {
-        "messages": [
+def formatting_func(examples):
+    texts = []
+    for example in examples:
+        messages = [
             {"role": "user", "content": example["instruction"]},
             {"role": "assistant", "content": example["output"]},
         ]
-    }
+        text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+        texts.append(text)
+    return texts
 
-train_formatted = [format_example(ex) for ex in train_data]
-eval_formatted  = [format_example(ex) for ex in eval_data]
-print(f"Formatting done")
-print(f"Prompt sample: {train_formatted[0]['messages'][0]['content'][:150]}...")
-print(f"Output sample: {train_formatted[0]['messages'][1]['content'][:150]}...")
+print("Formatting func ready")
