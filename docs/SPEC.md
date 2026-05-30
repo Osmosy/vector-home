@@ -1005,3 +1005,51 @@ _Документация Vector Home v2. Все фазы 0–6 завершен
 - RuView: WiFi-сенсинг, 61K звёзд, ESP32-S3 $9
 - IEEE 802.11bf-2025: стандарт WiFi-сенсинга (2025)
 - CMU DensePose from WiFi: академический предшественник
+
+---
+
+## 9. Голосовой стек (v2.2)
+
+**Vector Voice** — голосовой слой на базе Moonshine Voice. Замена Whisper + Piper + Router.
+
+### Установка
+
+```bash
+pip install moonshine-voice
+```
+
+### Компоненты
+
+| Компонент | Было | Стало |
+|-----------|------|-------|
+| STT | Whisper (faster-whisper) | Moonshine STT — выше точность, ниже задержка |
+| TTS | Piper | Moonshine TTS — русский язык из коробки |
+| Intent | Router (GPT-2 + regex) | Moonshine Intent — семантический matching |
+| Diarization | Нет | Moonshine — кто говорит |
+
+### Модели
+
+| Модель | Размер | Где |
+|--------|--------|-----|
+| tiny | 26 МБ | Raspberry Pi 5 |
+| small | ~100 МБ | Десктоп |
+| base | ~300 МБ | Сервер |
+
+### Интеграция
+
+```python
+from moonshine_voice import MicTranscriber, IntentRecognizer
+
+transcriber = MicTranscriber(language="ru")
+recognizer = IntentRecognizer()
+
+for text in transcriber.stream():
+    intent = recognizer.match(text, actions=ACTION_LIST)
+    if intent:
+        ha_bridge.execute(intent)
+```
+
+### Источник
+
+- Vector Voice: https://github.com/Osmosy/vector-voice
+- Moonshine Voice: https://github.com/moonshine-ai/moonshine (8.3K+ звёзд)
