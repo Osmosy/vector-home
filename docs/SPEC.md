@@ -1053,3 +1053,39 @@ for text in transcriber.stream():
 
 - Vector Voice: https://github.com/Osmosy/vector-voice
 - Moonshine Voice: https://github.com/moonshine-ai/moonshine (8.3K+ звёзд)
+
+---
+
+## 10. Сетевой слой (v2.3)
+
+**Numa** — портативный DNS-резолвер. Один бинарник (Rust), без Docker/PHP/lighttpd.
+
+### Возможности
+
+| Функция | Для чего |
+|---------|---------|
+| `.numa`-домены | `vector-home.numa`, `ha.numa`, `voice.numa` — имена вместо IP |
+| Блокировка рекламы | DNS-уровень, все устройства в сети |
+| DNS-over-TLS/HTTPS | Шифрование запросов |
+| ODoH | Oblivious DNS — приватность без облака |
+| Кэширование | Ускорение повторных запросов |
+| Автообнаружение | Устройства в локальной сети видны автоматически |
+
+### Установка
+
+```bash
+# Один бинарник
+wget https://github.com/razvandimescu/numa/releases/latest/download/numa-linux-x86_64
+chmod +x numa-linux-x86_64 && sudo mv numa-linux-x86_64 /usr/local/bin/numa
+
+# Запуск
+numa serve
+```
+
+### Что заменяет
+
+Pi-hole (Docker + PHP + lighttpd) → Numa (один бинарник, 4 МБ).
+
+### Источник
+
+- Numa: https://github.com/razvandimescu/numa (1.2K звёзд, Rust, MIT)
