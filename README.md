@@ -4,6 +4,8 @@
 
 # Vector Home v2
 
+[![Ecosystem: Vector](https://img.shields.io/badge/Ecosystem-Vector-blue.svg)](https://osmosy.github.io/)
+
 **Offline CPU-only smart home control**
 
 Voice/text → Router → GPT-2 Parser → Home Assistant
